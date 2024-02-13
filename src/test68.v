@@ -14,7 +14,7 @@ module test68
   // Switches
   input   [3:0] sw,
   // HDMI
-  output  [3:0] gpdi_dp,
+  output  [3:0] gpdi_dp, gpdi_dn,
   // Keyboard
   output        usb_fpga_pu_dp,
   output        usb_fpga_pu_dn,
@@ -472,6 +472,7 @@ module test68
 
   video vga (
     .clk(clk_vga),
+    .reset(!pwr_up_reset_n),
     .vga_r(red),
     .vga_g(green),
     .vga_b(blue),
@@ -521,7 +522,7 @@ module test68
     .hSync(~osd_vga_hsync),
     .vSync(~osd_vga_vsync),
     .gpdi_dp(gpdi_dp),
-    .gpdi_dn()
+    .gpdi_dn(gpdi_dn)
   );
 
   // ===============================================================
