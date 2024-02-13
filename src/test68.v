@@ -2,8 +2,8 @@
 module test68
 #(
   parameter c_slowdown    = 0, // CPU clock slowdown 2^n times (try 20-22)
-  parameter c_lcd_hex     = 1, // SPI LCD HEX decoder
-  parameter c_sdram       = 1, // 0: BRAM 32K,  1: SDRAM
+  parameter c_lcd_hex     = 0, // SPI LCD HEX decoder
+  parameter c_sdram       = 0, // 0: BRAM 32K,  1: SDRAM
   parameter c_vga_out     = 0, // 0: Just HDMI, 1: VGA and HDMI
   parameter c_diag        = 0  // 0: No LED diagnostcs, 1: LED diagnostics
 )
@@ -106,8 +106,8 @@ module test68
   assign usb_fpga_pu_dn = 1;
 
   // Passthru to ESP32 micropython serial console
-  //assign wifi_rxd = ftdi_txd;
-  //assign ftdi_rxd = wifi_txd;
+  assign wifi_rxd = ftdi_txd;
+  assign ftdi_rxd = wifi_txd;
 
   // ===============================================================
   // Optional VGA output
@@ -178,7 +178,7 @@ module test68
   wire [15:0] cpu_din;           // Data to CPU
   wire [15:0] cpu_dout;          // Data from CPU
   wire [23:1] cpu_a;             // Address
-  reg [7:0] R_cpu_control = 4;   // SPI loader, initially HALT to
+  reg [7:0] R_cpu_control = 0;   // SPI loader, initially HALT to
   wire halt_n = ~R_cpu_control[2]; // prevent running SDRAM junk code
   wire acia_cs  = !vma_n && cpu_a[3:2] == 0;
   wire audio_cs = !vma_n && cpu_a[3:1] == 2;
@@ -547,7 +547,7 @@ module test68
   // ===============================================================
   // Diagnostic leds
   // ===============================================================
-  assign leds = {cpu_fc2, cpu_fc1, cpu_fc0};
+  assign leds = cpu_a[7:0];//{cpu_fc2, cpu_fc1, cpu_fc0};
 
   generate
   if(c_lcd_hex)

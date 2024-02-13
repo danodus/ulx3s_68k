@@ -13,5 +13,7 @@ VERILOG = ../src/test68.v ../src/fx68k.v ../src/fx68kAlu.v ../src/uaddrPla.v \
 
 PIN_DEF = ulx3s_v20.lpf
 
+TOP = test68
+
 include ulx3s.mk
 

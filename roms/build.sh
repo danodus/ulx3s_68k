@@ -1,4 +1,4 @@
-./asmx68 -s9 -e -w test.asm -o test.s9
-srec_cat test.s9 -o test.bin -binary
-python3 tomem.py test.bin >test.mem
+vasmm68k_mot -spaces -Fbin -L test.lst test.asm -o test.mx1
+python3 tomem.py test.mx1 > test.mem
+
 
