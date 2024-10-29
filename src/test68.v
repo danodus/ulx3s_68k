@@ -225,7 +225,7 @@ module test68
   fx68k fx68k (
     // input
     .clk( clk_cpu),
-    .HALTn(halt_n),
+    //.HALTn(halt_n),
     .extReset(!btn[0] || !pwr_up_reset_n || R_cpu_control[0]),
     .pwrUp(!pwr_up_reset_n),
     .enPhi1(fx68_phi1),

@@ -1,4 +1,4 @@
-VERILOG = ../src/test68.v ../src/fx68k.v ../src/fx68kAlu.v ../src/uaddrPla.v \
+VERILOG = ../src/test68.v ../src/fx68k.v ../src/fx68kAlu.v ../src/uaddrPla.v ../src/uaddrPla.v ../src/fx68k_MicroRom.v ../src/fx68k_NanoRom.v\
           ../src/vram.v ../src/sdram.v \
           ../src/sdram_pnru_68k.v \
           ../src/sdram_pnru_68k_180deg.v \

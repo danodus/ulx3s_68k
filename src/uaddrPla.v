@@ -8,11 +8,12 @@ module pla_lined (
 	plaA2,
 	plaA3
 );
+	reg _sv2v_0;
 	input [3:0] movEa;
 	input [3:0] col;
 	input [15:0] opcode;
 	input [15:0] lineBmap;
-	output palIll;
+	output wire palIll;
 	output wire [9:0] plaA1;
 	output wire [9:0] plaA2;
 	output wire [9:0] plaA3;
@@ -29,33 +30,38 @@ module pla_lined (
 	assign plaA2 = arA23[line];
 	assign plaA3 = (lineBmap[0] ? scA3 : arA23[line]);
 	always @(*) begin
+		if (_sv2v_0)
+			;
 		arIll['h6] = 1'b0;
-		arA23['h6] = 'sdX;
+		arA23['h6] = 1'sbx;
 		if (opcode[11:8] == 4'h1)
-			arA1['h6] = (|opcode[7:0] ? 'h089 : 'h0A9);
+			arA1['h6] = (|opcode[7:0] ? 'h89 : 'ha9);
 		else
-			arA1['h6] = (|opcode[7:0] ? 'h308 : 'h068);
+			arA1['h6] = (|opcode[7:0] ? 'h308 : 'h68);
 		arIll['h7] = opcode[8];
-		arA23['h7] = 'sdX;
-		arA1['h7] = 'h23B;
+		arA23['h7] = 1'sbx;
+		arA1['h7] = 'h23b;
 		arIll['ha] = 1'b1;
 		arIll['hf] = 1'b1;
-		arA1['ha] = 'sdX;
-		arA1['hf] = 'sdX;
-		arA23['ha] = 'sdX;
-		arA23['hf] = 'sdX;
+		arA1['ha] = 1'sbx;
+		arA1['hf] = 1'sbx;
+		arA23['ha] = 1'sbx;
+		arA23['hf] = 1'sbx;
 	end
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if ((~opcode[11] & opcode[7]) & opcode[6]) begin
-			arA23['he] = 'h3C7;
+			arA23['he] = 'h3c7;
+			(* full_case, parallel_case *)
 			case (col)
 				2: begin
 					arIll['he] = 1'b0;
-					arA1['he] = 'h006;
+					arA1['he] = 'h6;
 				end
 				3: begin
 					arIll['he] = 1'b0;
-					arA1['he] = 'h21C;
+					arA1['he] = 'h21c;
 				end
 				4: begin
 					arIll['he] = 1'b0;
@@ -63,28 +69,29 @@ module pla_lined (
 				end
 				5: begin
 					arIll['he] = 1'b0;
-					arA1['he] = 'h1C2;
+					arA1['he] = 'h1c2;
 				end
 				6: begin
 					arIll['he] = 1'b0;
-					arA1['he] = 'h1E3;
+					arA1['he] = 'h1e3;
 				end
 				7: begin
 					arIll['he] = 1'b0;
-					arA1['he] = 'h00A;
+					arA1['he] = 'ha;
 				end
 				8: begin
 					arIll['he] = 1'b0;
-					arA1['he] = 'h1E2;
+					arA1['he] = 'h1e2;
 				end
 				default: begin
 					arIll['he] = 1'b1;
-					arA1['he] = 'sdX;
+					arA1['he] = 1'sbx;
 				end
 			endcase
 		end
 		else begin
-			arA23['he] = 'sdX;
+			arA23['he] = 1'sbx;
+			(* full_case, parallel_case *)
 			case (opcode[7:6])
 				2'b00, 2'b01: begin
 					arIll['he] = 1'b0;
@@ -96,1958 +103,1991 @@ module pla_lined (
 				end
 				2'b11: begin
 					arIll['he] = 1'b1;
-					arA1['he] = 'sdX;
+					arA1['he] = 1'sbx;
 				end
 			endcase
 		end
+	end
 	always @(*) begin
+		if (_sv2v_0)
+			;
 		illMisc = 1'b0;
 		case (opcode[5:3])
-			3'b000, 3'b001: a1Misc = 'h1D0;
-			3'b010: a1Misc = 'h30B;
+			3'b000, 3'b001: a1Misc = 'h1d0;
+			3'b010: a1Misc = 'h30b;
 			3'b011: a1Misc = 'h119;
-			3'b100: a1Misc = 'h2F5;
+			3'b100: a1Misc = 'h2f5;
 			3'b101: a1Misc = 'h230;
 			3'b110:
 				case (opcode[2:0])
-					3'b110: a1Misc = 'h06D;
-					3'b000: a1Misc = 'h3A6;
+					3'b110: a1Misc = 'h6d;
+					3'b000: a1Misc = 'h3a6;
 					3'b001: a1Misc = 'h363;
-					3'b010: a1Misc = 'h3A2;
-					3'b011: a1Misc = 'h12A;
-					3'b111: a1Misc = 'h12A;
+					3'b010: a1Misc = 'h3a2;
+					3'b011: a1Misc = 'h12a;
+					3'b111: a1Misc = 'h12a;
 					3'b101: a1Misc = 'h126;
 					default: begin
 						illMisc = 1'b1;
-						a1Misc = 'sdX;
+						a1Misc = 1'sbx;
 					end
 				endcase
 			default: begin
 				illMisc = 1'b1;
-				a1Misc = 'sdX;
+				a1Misc = 1'sbx;
 			end
 		endcase
 	end
-	always @(*)
-		if ((opcode[11:6] & 'h1F) == 'h8)
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		if ((opcode[11:6] & 'h1f) == 'h8)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h100;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
 					scA3 = 'h299;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
 					scA3 = 'h299;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
 					scA3 = 'h299;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
 					scA3 = 'h299;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
 					scA3 = 'h299;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
 					scA3 = 'h299;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
 					scA3 = 'h299;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1CC;
-					scA3 = 'sdX;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1cc;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h37) == 'h0)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h100;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
 					scA3 = 'h299;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
 					scA3 = 'h299;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
 					scA3 = 'h299;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
 					scA3 = 'h299;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
 					scA3 = 'h299;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
 					scA3 = 'h299;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
 					scA3 = 'h299;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1CC;
-					scA3 = 'sdX;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1cc;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
-		else if ((opcode[11:6] & 'h1F) == 'h9)
+		else if ((opcode[11:6] & 'h1f) == 'h9)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h100;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
 					scA3 = 'h299;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
 					scA3 = 'h299;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
 					scA3 = 'h299;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
 					scA3 = 'h299;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
 					scA3 = 'h299;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
 					scA3 = 'h299;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
 					scA3 = 'h299;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1CC;
-					scA3 = 'sdX;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1cc;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h37) == 'h1)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h100;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
 					scA3 = 'h299;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
 					scA3 = 'h299;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
 					scA3 = 'h299;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
 					scA3 = 'h299;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
 					scA3 = 'h299;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
 					scA3 = 'h299;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
 					scA3 = 'h299;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1CC;
-					scA3 = 'sdX;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1cc;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
-		else if ((opcode[11:6] & 'h1F) == 'hA)
+		else if ((opcode[11:6] & 'h1f) == 'ha)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h10C;
-					scA3 = 'sdX;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h10c;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00B;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'hb;
+					scA3 = 'h29d;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00F;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'hf;
+					scA3 = 'h29d;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
+					arA1['h0] = 'h3e0;
 					arA23['h0] = 'h179;
-					scA3 = 'h29D;
+					scA3 = 'h29d;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1C6;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1c6;
+					scA3 = 'h29d;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1E7;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1e7;
+					scA3 = 'h29d;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00E;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'he;
+					scA3 = 'h29d;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1E6;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1e6;
+					scA3 = 'h29d;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h37) == 'h2)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h10C;
-					scA3 = 'sdX;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h10c;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00B;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'hb;
+					scA3 = 'h29d;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00F;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'hf;
+					scA3 = 'h29d;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
+					arA1['h0] = 'h3e0;
 					arA23['h0] = 'h179;
-					scA3 = 'h29D;
+					scA3 = 'h29d;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1C6;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1c6;
+					scA3 = 'h29d;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1E7;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1e7;
+					scA3 = 'h29d;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00E;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'he;
+					scA3 = 'h29d;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1E6;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1e6;
+					scA3 = 'h29d;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h37) == 'h10)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h100;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
 					scA3 = 'h299;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
 					scA3 = 'h299;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
 					scA3 = 'h299;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
 					scA3 = 'h299;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
 					scA3 = 'h299;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
 					scA3 = 'h299;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
 					scA3 = 'h299;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h37) == 'h11)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h100;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
 					scA3 = 'h299;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
 					scA3 = 'h299;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
 					scA3 = 'h299;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
 					scA3 = 'h299;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
 					scA3 = 'h299;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
 					scA3 = 'h299;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
 					scA3 = 'h299;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h37) == 'h12)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h10C;
-					scA3 = 'sdX;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h10c;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00B;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'hb;
+					scA3 = 'h29d;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00F;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'hf;
+					scA3 = 'h29d;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
+					arA1['h0] = 'h3e0;
 					arA23['h0] = 'h179;
-					scA3 = 'h29D;
+					scA3 = 'h29d;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1C6;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1c6;
+					scA3 = 'h29d;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1E7;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1e7;
+					scA3 = 'h29d;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00E;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'he;
+					scA3 = 'h29d;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1E6;
-					scA3 = 'h29D;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1e6;
+					scA3 = 'h29d;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h7) == 'h4)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E7;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 'h3e7;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1D2;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 'h1d2;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h006;
-					arA23['h0] = 'sdX;
+					arA1['h0] = 'h6;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h21C;
-					arA23['h0] = 'sdX;
+					arA1['h0] = 'h21c;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
 					arA1['h0] = 'h103;
-					arA23['h0] = 'sdX;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1C2;
-					arA23['h0] = 'sdX;
+					arA1['h0] = 'h1c2;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E3;
-					arA23['h0] = 'sdX;
+					arA1['h0] = 'h1e3;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h00A;
-					arA23['h0] = 'sdX;
+					arA1['h0] = 'ha;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E2;
-					arA23['h0] = 'sdX;
+					arA1['h0] = 'h1e2;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				9: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1C2;
-					arA23['h0] = 'sdX;
+					arA1['h0] = 'h1c2;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				10: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E3;
-					arA23['h0] = 'sdX;
+					arA1['h0] = 'h1e3;
+					arA23['h0] = 1'sbx;
 					scA3 = 'h215;
 				end
 				11: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h0EA;
-					arA23['h0] = 'h0AB;
-					scA3 = 'sdX;
+					arA1['h0] = 'hea;
+					arA23['h0] = 'hab;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h7) == 'h5)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3EF;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 'h3ef;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1D6;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 'h1d6;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h006;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h6;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h21C;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h21c;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
 					arA1['h0] = 'h103;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1C2;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h1c2;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E3;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h1e3;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h00A;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'ha;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E2;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h1e2;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h7) == 'h7)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3EF;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 'h3ef;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1CE;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 'h1ce;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h006;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h6;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h21C;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h21c;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
 					arA1['h0] = 'h103;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1C2;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h1c2;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E3;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h1e3;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h00A;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'ha;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E2;
-					arA23['h0] = 'sdX;
-					scA3 = 'h081;
+					arA1['h0] = 'h1e2;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h81;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h7) == 'h6)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3EB;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 'h3eb;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1CA;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 'h1ca;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h006;
-					arA23['h0] = 'sdX;
-					scA3 = 'h069;
+					arA1['h0] = 'h6;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h69;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h21C;
-					arA23['h0] = 'sdX;
-					scA3 = 'h069;
+					arA1['h0] = 'h21c;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h69;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
 					arA1['h0] = 'h103;
-					arA23['h0] = 'sdX;
-					scA3 = 'h069;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h69;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1C2;
-					arA23['h0] = 'sdX;
-					scA3 = 'h069;
+					arA1['h0] = 'h1c2;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h69;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E3;
-					arA23['h0] = 'sdX;
-					scA3 = 'h069;
+					arA1['h0] = 'h1e3;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h69;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h00A;
-					arA23['h0] = 'sdX;
-					scA3 = 'h069;
+					arA1['h0] = 'ha;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h69;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h1E2;
-					arA23['h0] = 'sdX;
-					scA3 = 'h069;
+					arA1['h0] = 'h1e2;
+					arA23['h0] = 1'sbx;
+					scA3 = 'h69;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h20)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h3E7;
-					scA3 = 'sdX;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h3e7;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
 					scA3 = 'h215;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
 					scA3 = 'h215;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
 					scA3 = 'h215;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
 					scA3 = 'h215;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
 					scA3 = 'h215;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
 					scA3 = 'h215;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
 					scA3 = 'h215;
 				end
 				9: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
 					scA3 = 'h215;
 				end
 				10: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
 					scA3 = 'h215;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h21)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h3EF;
-					scA3 = 'sdX;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h3ef;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
+					scA3 = 'h81;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
+					scA3 = 'h81;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
-					scA3 = 'h081;
+					scA3 = 'h81;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
+					scA3 = 'h81;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
+					scA3 = 'h81;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
+					scA3 = 'h81;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
+					scA3 = 'h81;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h23)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h3EF;
-					scA3 = 'sdX;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h3ef;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
+					scA3 = 'h81;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
+					scA3 = 'h81;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
-					scA3 = 'h081;
+					scA3 = 'h81;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
+					scA3 = 'h81;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
+					scA3 = 'h81;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
+					scA3 = 'h81;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
-					scA3 = 'h081;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
+					scA3 = 'h81;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h22)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h3EB;
-					scA3 = 'sdX;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h3eb;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
-					scA3 = 'h069;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
+					scA3 = 'h69;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
-					scA3 = 'h069;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
+					scA3 = 'h69;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
-					scA3 = 'h069;
+					scA3 = 'h69;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
-					scA3 = 'h069;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
+					scA3 = 'h69;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
-					scA3 = 'h069;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
+					scA3 = 'h69;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
-					scA3 = 'h069;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
+					scA3 = 'h69;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
-					scA3 = 'h069;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
+					scA3 = 'h69;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h30)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h108;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
+					scA3 = 'h87;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
+					scA3 = 'h87;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
-					scA3 = 'h087;
+					scA3 = 'h87;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
+					scA3 = 'h87;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
+					scA3 = 'h87;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
+					scA3 = 'h87;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
+					scA3 = 'h87;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h31)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h108;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h006;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h6;
+					scA3 = 'h87;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h21C;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h21c;
+					scA3 = 'h87;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
+					arA1['h0] = 'h2b9;
 					arA23['h0] = 'h103;
-					scA3 = 'h087;
+					scA3 = 'h87;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1C2;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1c2;
+					scA3 = 'h87;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E3;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e3;
+					scA3 = 'h87;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h00A;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'ha;
+					scA3 = 'h87;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h2B9;
-					arA23['h0] = 'h1E2;
-					scA3 = 'h087;
+					arA1['h0] = 'h2b9;
+					arA23['h0] = 'h1e2;
+					scA3 = 'h87;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h32)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
+					arA1['h0] = 'h3e0;
 					arA23['h0] = 'h104;
-					scA3 = 'sdX;
+					scA3 = 1'sbx;
 				end
 				1: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				2: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00B;
-					scA3 = 'h08F;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'hb;
+					scA3 = 'h8f;
 				end
 				3: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00F;
-					scA3 = 'h08F;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'hf;
+					scA3 = 'h8f;
 				end
 				4: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
+					arA1['h0] = 'h3e0;
 					arA23['h0] = 'h179;
-					scA3 = 'h08F;
+					scA3 = 'h8f;
 				end
 				5: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1C6;
-					scA3 = 'h08F;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1c6;
+					scA3 = 'h8f;
 				end
 				6: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1E7;
-					scA3 = 'h08F;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1e7;
+					scA3 = 'h8f;
 				end
 				7: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h00E;
-					scA3 = 'h08F;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'he;
+					scA3 = 'h8f;
 				end
 				8: begin
 					arIll['h0] = 1'b0;
-					arA1['h0] = 'h3E0;
-					arA23['h0] = 'h1E6;
-					scA3 = 'h08F;
+					arA1['h0] = 'h3e0;
+					arA23['h0] = 'h1e6;
+					scA3 = 'h8f;
 				end
 				9: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				10: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				11: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 				default: begin
 					arIll['h0] = 1'b1;
-					arA1['h0] = 'sdX;
-					arA23['h0] = 'sdX;
-					scA3 = 'sdX;
+					arA1['h0] = 1'sbx;
+					arA23['h0] = 1'sbx;
+					scA3 = 1'sbx;
 				end
 			endcase
 		else begin
 			arIll['h0] = 1'b1;
-			arA1['h0] = 'sdX;
-			arA23['h0] = 'sdX;
-			scA3 = 'sdX;
+			arA1['h0] = 1'sbx;
+			arA23['h0] = 1'sbx;
+			scA3 = 1'sbx;
 		end
-	always @(*)
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if ((opcode[11:6] & 'h27) == 'h0)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h133;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h6;
+					arA23['h4] = 'h2b8;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h21c;
+					arA23['h4] = 'h2b8;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h103;
-					arA23['h4] = 'h2B8;
+					arA23['h4] = 'h2b8;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h1c2;
+					arA23['h4] = 'h2b8;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h1e3;
+					arA23['h4] = 'h2b8;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'ha;
+					arA23['h4] = 'h2b8;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h1e2;
+					arA23['h4] = 'h2b8;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h27) == 'h1)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h133;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h6;
+					arA23['h4] = 'h2b8;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h21c;
+					arA23['h4] = 'h2b8;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h103;
-					arA23['h4] = 'h2B8;
+					arA23['h4] = 'h2b8;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h1c2;
+					arA23['h4] = 'h2b8;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h1e3;
+					arA23['h4] = 'h2b8;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'ha;
+					arA23['h4] = 'h2b8;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
-					arA23['h4] = 'h2B8;
+					arA1['h4] = 'h1e2;
+					arA23['h4] = 'h2b8;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h27) == 'h2)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h137;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00B;
-					arA23['h4] = 'h2BC;
+					arA1['h4] = 'hb;
+					arA23['h4] = 'h2bc;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00F;
-					arA23['h4] = 'h2BC;
+					arA1['h4] = 'hf;
+					arA23['h4] = 'h2bc;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h179;
-					arA23['h4] = 'h2BC;
+					arA23['h4] = 'h2bc;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C6;
-					arA23['h4] = 'h2BC;
+					arA1['h4] = 'h1c6;
+					arA23['h4] = 'h2bc;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E7;
-					arA23['h4] = 'h2BC;
+					arA1['h4] = 'h1e7;
+					arA23['h4] = 'h2bc;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00E;
-					arA23['h4] = 'h2BC;
+					arA1['h4] = 'he;
+					arA23['h4] = 'h2bc;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E6;
-					arA23['h4] = 'h2BC;
+					arA1['h4] = 'h1e6;
+					arA23['h4] = 'h2bc;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h3)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h3A5;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h3a5;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
-					arA23['h4] = 'h3A1;
+					arA1['h4] = 'h6;
+					arA23['h4] = 'h3a1;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
-					arA23['h4] = 'h3A1;
+					arA1['h4] = 'h21c;
+					arA23['h4] = 'h3a1;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h103;
-					arA23['h4] = 'h3A1;
+					arA23['h4] = 'h3a1;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
-					arA23['h4] = 'h3A1;
+					arA1['h4] = 'h1c2;
+					arA23['h4] = 'h3a1;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
-					arA23['h4] = 'h3A1;
+					arA1['h4] = 'h1e3;
+					arA23['h4] = 'h3a1;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
-					arA23['h4] = 'h3A1;
+					arA1['h4] = 'ha;
+					arA23['h4] = 'h3a1;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
-					arA23['h4] = 'h3A1;
+					arA1['h4] = 'h1e2;
+					arA23['h4] = 'h3a1;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h13)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h301;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
+					arA1['h4] = 'h6;
 					arA23['h4] = 'h159;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
+					arA1['h4] = 'h21c;
 					arA23['h4] = 'h159;
 				end
 				4: begin
@@ -2057,65 +2097,66 @@ module pla_lined (
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
+					arA1['h4] = 'h1c2;
 					arA23['h4] = 'h159;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
+					arA1['h4] = 'h1e3;
 					arA23['h4] = 'h159;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
+					arA1['h4] = 'ha;
 					arA23['h4] = 'h159;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
+					arA1['h4] = 'h1e2;
 					arA23['h4] = 'h159;
 				end
 				9: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
+					arA1['h4] = 'h1c2;
 					arA23['h4] = 'h159;
 				end
 				10: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
+					arA1['h4] = 'h1e3;
 					arA23['h4] = 'h159;
 				end
 				11: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h0EA;
+					arA1['h4] = 'hea;
 					arA23['h4] = 'h301;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
-		else if (opcode[11:6] == 'h1B)
+		else if (opcode[11:6] == 'h1b)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h301;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
+					arA1['h4] = 'h6;
 					arA23['h4] = 'h159;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
+					arA1['h4] = 'h21c;
 					arA23['h4] = 'h159;
 				end
 				4: begin
@@ -2125,541 +2166,549 @@ module pla_lined (
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
+					arA1['h4] = 'h1c2;
 					arA23['h4] = 'h159;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
+					arA1['h4] = 'h1e3;
 					arA23['h4] = 'h159;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
+					arA1['h4] = 'ha;
 					arA23['h4] = 'h159;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
+					arA1['h4] = 'h1e2;
 					arA23['h4] = 'h159;
 				end
 				9: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
+					arA1['h4] = 'h1c2;
 					arA23['h4] = 'h159;
 				end
 				10: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
+					arA1['h4] = 'h1e3;
 					arA23['h4] = 'h159;
 				end
 				11: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h0EA;
+					arA1['h4] = 'hea;
 					arA23['h4] = 'h301;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h20)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h13B;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h13b;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
-					arA23['h4] = 'h15C;
+					arA1['h4] = 'h6;
+					arA23['h4] = 'h15c;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
-					arA23['h4] = 'h15C;
+					arA1['h4] = 'h21c;
+					arA23['h4] = 'h15c;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h103;
-					arA23['h4] = 'h15C;
+					arA23['h4] = 'h15c;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
-					arA23['h4] = 'h15C;
+					arA1['h4] = 'h1c2;
+					arA23['h4] = 'h15c;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
-					arA23['h4] = 'h15C;
+					arA1['h4] = 'h1e3;
+					arA23['h4] = 'h15c;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
-					arA23['h4] = 'h15C;
+					arA1['h4] = 'ha;
+					arA23['h4] = 'h15c;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
-					arA23['h4] = 'h15C;
+					arA1['h4] = 'h1e2;
+					arA23['h4] = 'h15c;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h21)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h341;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h17C;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h17c;
+					arA23['h4] = 1'sbx;
 				end
 				3: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				4: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h17D;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h17d;
+					arA23['h4] = 1'sbx;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1FF;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1ff;
+					arA23['h4] = 1'sbx;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h178;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1FA;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1fa;
+					arA23['h4] = 1'sbx;
 				end
 				9: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h17D;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h17d;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1FF;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1ff;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h22)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h133;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h3A0;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h3a0;
+					arA23['h4] = 1'sbx;
 				end
 				3: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h3A4;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h3a4;
+					arA23['h4] = 1'sbx;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F1;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f1;
+					arA23['h4] = 1'sbx;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h325;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1ED;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1ed;
+					arA23['h4] = 1'sbx;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E5;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1e5;
+					arA23['h4] = 1'sbx;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h23)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h232;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h3A0;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h3a0;
+					arA23['h4] = 1'sbx;
 				end
 				3: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h3A4;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h3a4;
+					arA23['h4] = 1'sbx;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F1;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f1;
+					arA23['h4] = 1'sbx;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h325;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1ED;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1ed;
+					arA23['h4] = 1'sbx;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E5;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1e5;
+					arA23['h4] = 1'sbx;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h28)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h12D;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h12d;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h6;
+					arA23['h4] = 'h3c3;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h21c;
+					arA23['h4] = 'h3c3;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h103;
-					arA23['h4] = 'h3C3;
+					arA23['h4] = 'h3c3;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h1c2;
+					arA23['h4] = 'h3c3;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h1e3;
+					arA23['h4] = 'h3c3;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'ha;
+					arA23['h4] = 'h3c3;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h1e2;
+					arA23['h4] = 'h3c3;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h29)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h12D;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h12d;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h6;
+					arA23['h4] = 'h3c3;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h21c;
+					arA23['h4] = 'h3c3;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h103;
-					arA23['h4] = 'h3C3;
+					arA23['h4] = 'h3c3;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h1c2;
+					arA23['h4] = 'h3c3;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h1e3;
+					arA23['h4] = 'h3c3;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'ha;
+					arA23['h4] = 'h3c3;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
-					arA23['h4] = 'h3C3;
+					arA1['h4] = 'h1e2;
+					arA23['h4] = 'h3c3;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
-		else if (opcode[11:6] == 'h2A)
+		else if (opcode[11:6] == 'h2a)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h125;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00B;
-					arA23['h4] = 'h3CB;
+					arA1['h4] = 'hb;
+					arA23['h4] = 'h3cb;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00F;
-					arA23['h4] = 'h3CB;
+					arA1['h4] = 'hf;
+					arA23['h4] = 'h3cb;
 				end
 				4: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h179;
-					arA23['h4] = 'h3CB;
+					arA23['h4] = 'h3cb;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C6;
-					arA23['h4] = 'h3CB;
+					arA1['h4] = 'h1c6;
+					arA23['h4] = 'h3cb;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E7;
-					arA23['h4] = 'h3CB;
+					arA1['h4] = 'h1e7;
+					arA23['h4] = 'h3cb;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00E;
-					arA23['h4] = 'h3CB;
+					arA1['h4] = 'he;
+					arA23['h4] = 'h3cb;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E6;
-					arA23['h4] = 'h3CB;
+					arA1['h4] = 'h1e6;
+					arA23['h4] = 'h3cb;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
-		else if (opcode[11:6] == 'h2B)
+		else if (opcode[11:6] == 'h2b)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h345;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
+					arA1['h4] = 'h6;
 					arA23['h4] = 'h343;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
+					arA1['h4] = 'h21c;
 					arA23['h4] = 'h343;
 				end
 				4: begin
@@ -2669,133 +2718,135 @@ module pla_lined (
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
+					arA1['h4] = 'h1c2;
 					arA23['h4] = 'h343;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
+					arA1['h4] = 'h1e3;
 					arA23['h4] = 'h343;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
+					arA1['h4] = 'ha;
 					arA23['h4] = 'h343;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
+					arA1['h4] = 'h1e2;
 					arA23['h4] = 'h343;
 				end
 				9: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
-		else if ((opcode[11:6] & 'h3E) == 'h32)
+		else if ((opcode[11:6] & 'h3e) == 'h32)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h127;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h123;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				4: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1FD;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1fd;
+					arA23['h4] = 1'sbx;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F5;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f5;
+					arA23['h4] = 1'sbx;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F9;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f9;
+					arA23['h4] = 1'sbx;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E9;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1e9;
+					arA23['h4] = 1'sbx;
 				end
 				9: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1FD;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1fd;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F5;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f5;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h7) == 'h6)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h152;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h006;
+					arA1['h4] = 'h6;
 					arA23['h4] = 'h151;
 				end
 				3: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h21C;
+					arA1['h4] = 'h21c;
 					arA23['h4] = 'h151;
 				end
 				4: begin
@@ -2805,621 +2856,634 @@ module pla_lined (
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
+					arA1['h4] = 'h1c2;
 					arA23['h4] = 'h151;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
+					arA1['h4] = 'h1e3;
 					arA23['h4] = 'h151;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h00A;
+					arA1['h4] = 'ha;
 					arA23['h4] = 'h151;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E2;
+					arA1['h4] = 'h1e2;
 					arA23['h4] = 'h151;
 				end
 				9: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1C2;
+					arA1['h4] = 'h1c2;
 					arA23['h4] = 'h151;
 				end
 				10: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1E3;
+					arA1['h4] = 'h1e3;
 					arA23['h4] = 'h151;
 				end
 				11: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h0EA;
+					arA1['h4] = 'hea;
 					arA23['h4] = 'h152;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if ((opcode[11:6] & 'h7) == 'h7)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h2F1;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h2f1;
+					arA23['h4] = 1'sbx;
 				end
 				3: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				4: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h2F2;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h2f2;
+					arA23['h4] = 1'sbx;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1FB;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1fb;
+					arA23['h4] = 1'sbx;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h275;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h3E4;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h3e4;
+					arA23['h4] = 1'sbx;
 				end
 				9: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h2F2;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h2f2;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1FB;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1fb;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
-		else if (opcode[11:6] == 'h3A)
+		else if (opcode[11:6] == 'h3a)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h273;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				3: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				4: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h2B0;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h2b0;
+					arA23['h4] = 1'sbx;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F3;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f3;
+					arA23['h4] = 1'sbx;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h293;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F2;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f2;
+					arA23['h4] = 1'sbx;
 				end
 				9: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h2B0;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h2b0;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F3;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f3;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
-		else if (opcode[11:6] == 'h3B)
+		else if (opcode[11:6] == 'h3b)
+			(* full_case, parallel_case *)
 			case (col)
 				0: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				1: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				2: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h255;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				3: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				4: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				5: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h2B4;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h2b4;
+					arA23['h4] = 1'sbx;
 				end
 				6: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F7;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f7;
+					arA23['h4] = 1'sbx;
 				end
 				7: begin
 					arIll['h4] = 1'b0;
 					arA1['h4] = 'h297;
-					arA23['h4] = 'sdX;
+					arA23['h4] = 1'sbx;
 				end
 				8: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F6;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f6;
+					arA23['h4] = 1'sbx;
 				end
 				9: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h2B4;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h2b4;
+					arA23['h4] = 1'sbx;
 				end
 				10: begin
 					arIll['h4] = 1'b0;
-					arA1['h4] = 'h1F7;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 'h1f7;
+					arA23['h4] = 1'sbx;
 				end
 				11: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 				default: begin
 					arIll['h4] = 1'b1;
-					arA1['h4] = 'sdX;
-					arA23['h4] = 'sdX;
+					arA1['h4] = 1'sbx;
+					arA23['h4] = 1'sbx;
 				end
 			endcase
 		else if (opcode[11:6] == 'h39) begin
 			arIll['h4] = illMisc;
 			arA1['h4] = a1Misc;
-			arA23['h4] = 'sdX;
+			arA23['h4] = 1'sbx;
 		end
 		else begin
 			arIll['h4] = 1'b1;
-			arA1['h4] = 'sdX;
-			arA23['h4] = 'sdX;
+			arA1['h4] = 1'sbx;
+			arA23['h4] = 1'sbx;
 		end
+	end
 	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (movEa)
 			0:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h1] = 1'b0;
 						arA1['h1] = 'h121;
-						arA23['h1] = 'sdX;
+						arA23['h1] = 1'sbx;
 					end
 					1: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 					2: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h006;
-						arA23['h1] = 'h29B;
+						arA1['h1] = 'h6;
+						arA23['h1] = 'h29b;
 					end
 					3: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h21C;
-						arA23['h1] = 'h29B;
+						arA1['h1] = 'h21c;
+						arA23['h1] = 'h29b;
 					end
 					4: begin
 						arIll['h1] = 1'b0;
 						arA1['h1] = 'h103;
-						arA23['h1] = 'h29B;
+						arA23['h1] = 'h29b;
 					end
 					5: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h29B;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h29b;
 					end
 					6: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h29B;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h29b;
 					end
 					7: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h00A;
-						arA23['h1] = 'h29B;
+						arA1['h1] = 'ha;
+						arA23['h1] = 'h29b;
 					end
 					8: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E2;
-						arA23['h1] = 'h29B;
+						arA1['h1] = 'h1e2;
+						arA23['h1] = 'h29b;
 					end
 					9: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h29B;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h29b;
 					end
 					10: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h29B;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h29b;
 					end
 					11: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h0EA;
+						arA1['h1] = 'hea;
 						arA23['h1] = 'h121;
 					end
 					default: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 				endcase
 			2:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h2FA;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 'h2fa;
+						arA23['h1] = 1'sbx;
 					end
 					1: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 					2: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h006;
-						arA23['h1] = 'h3AB;
+						arA1['h1] = 'h6;
+						arA23['h1] = 'h3ab;
 					end
 					3: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h21C;
-						arA23['h1] = 'h3AB;
+						arA1['h1] = 'h21c;
+						arA23['h1] = 'h3ab;
 					end
 					4: begin
 						arIll['h1] = 1'b0;
 						arA1['h1] = 'h103;
-						arA23['h1] = 'h3AB;
+						arA23['h1] = 'h3ab;
 					end
 					5: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h3AB;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h3ab;
 					end
 					6: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h3AB;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h3ab;
 					end
 					7: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h00A;
-						arA23['h1] = 'h3AB;
+						arA1['h1] = 'ha;
+						arA23['h1] = 'h3ab;
 					end
 					8: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E2;
-						arA23['h1] = 'h3AB;
+						arA1['h1] = 'h1e2;
+						arA23['h1] = 'h3ab;
 					end
 					9: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h3AB;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h3ab;
 					end
 					10: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h3AB;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h3ab;
 					end
 					11: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h0EA;
-						arA23['h1] = 'h2FA;
+						arA1['h1] = 'hea;
+						arA23['h1] = 'h2fa;
 					end
 					default: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 				endcase
 			3:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h2FE;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 'h2fe;
+						arA23['h1] = 1'sbx;
 					end
 					1: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 					2: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h006;
-						arA23['h1] = 'h3AF;
+						arA1['h1] = 'h6;
+						arA23['h1] = 'h3af;
 					end
 					3: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h21C;
-						arA23['h1] = 'h3AF;
+						arA1['h1] = 'h21c;
+						arA23['h1] = 'h3af;
 					end
 					4: begin
 						arIll['h1] = 1'b0;
 						arA1['h1] = 'h103;
-						arA23['h1] = 'h3AF;
+						arA23['h1] = 'h3af;
 					end
 					5: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h3AF;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h3af;
 					end
 					6: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h3AF;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h3af;
 					end
 					7: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h00A;
-						arA23['h1] = 'h3AF;
+						arA1['h1] = 'ha;
+						arA23['h1] = 'h3af;
 					end
 					8: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E2;
-						arA23['h1] = 'h3AF;
+						arA1['h1] = 'h1e2;
+						arA23['h1] = 'h3af;
 					end
 					9: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h3AF;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h3af;
 					end
 					10: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h3AF;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h3af;
 					end
 					11: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h0EA;
-						arA23['h1] = 'h2FE;
+						arA1['h1] = 'hea;
+						arA23['h1] = 'h2fe;
 					end
 					default: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 				endcase
 			4:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h2F8;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 'h2f8;
+						arA23['h1] = 1'sbx;
 					end
 					1: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 					2: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h006;
-						arA23['h1] = 'h38B;
+						arA1['h1] = 'h6;
+						arA23['h1] = 'h38b;
 					end
 					3: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h21C;
-						arA23['h1] = 'h38B;
+						arA1['h1] = 'h21c;
+						arA23['h1] = 'h38b;
 					end
 					4: begin
 						arIll['h1] = 1'b0;
 						arA1['h1] = 'h103;
-						arA23['h1] = 'h38B;
+						arA23['h1] = 'h38b;
 					end
 					5: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h38B;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h38b;
 					end
 					6: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h38B;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h38b;
 					end
 					7: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h00A;
-						arA23['h1] = 'h38B;
+						arA1['h1] = 'ha;
+						arA23['h1] = 'h38b;
 					end
 					8: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E2;
-						arA23['h1] = 'h38B;
+						arA1['h1] = 'h1e2;
+						arA23['h1] = 'h38b;
 					end
 					9: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h38B;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h38b;
 					end
 					10: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h38B;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h38b;
 					end
 					11: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h0EA;
-						arA23['h1] = 'h2F8;
+						arA1['h1] = 'hea;
+						arA23['h1] = 'h2f8;
 					end
 					default: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 				endcase
 			5:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h2DA;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 'h2da;
+						arA23['h1] = 1'sbx;
 					end
 					1: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 					2: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h006;
-						arA23['h1] = 'h38A;
+						arA1['h1] = 'h6;
+						arA23['h1] = 'h38a;
 					end
 					3: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h21C;
-						arA23['h1] = 'h38A;
+						arA1['h1] = 'h21c;
+						arA23['h1] = 'h38a;
 					end
 					4: begin
 						arIll['h1] = 1'b0;
 						arA1['h1] = 'h103;
-						arA23['h1] = 'h38A;
+						arA23['h1] = 'h38a;
 					end
 					5: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h38A;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h38a;
 					end
 					6: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h38A;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h38a;
 					end
 					7: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h00A;
-						arA23['h1] = 'h38A;
+						arA1['h1] = 'ha;
+						arA23['h1] = 'h38a;
 					end
 					8: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E2;
-						arA23['h1] = 'h38A;
+						arA1['h1] = 'h1e2;
+						arA23['h1] = 'h38a;
 					end
 					9: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h38A;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h38a;
 					end
 					10: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h38A;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h38a;
 					end
 					11: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h0EA;
-						arA23['h1] = 'h2DA;
+						arA1['h1] = 'hea;
+						arA23['h1] = 'h2da;
 					end
 					default: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 				endcase
 			6:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1EB;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 'h1eb;
+						arA23['h1] = 1'sbx;
 					end
 					1: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 					2: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h006;
+						arA1['h1] = 'h6;
 						arA23['h1] = 'h298;
 					end
 					3: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h21C;
+						arA1['h1] = 'h21c;
 						arA23['h1] = 'h298;
 					end
 					4: begin
@@ -3429,65 +3493,66 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
+						arA1['h1] = 'h1c2;
 						arA23['h1] = 'h298;
 					end
 					6: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
+						arA1['h1] = 'h1e3;
 						arA23['h1] = 'h298;
 					end
 					7: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h00A;
+						arA1['h1] = 'ha;
 						arA23['h1] = 'h298;
 					end
 					8: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E2;
+						arA1['h1] = 'h1e2;
 						arA23['h1] = 'h298;
 					end
 					9: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
+						arA1['h1] = 'h1c2;
 						arA23['h1] = 'h298;
 					end
 					10: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
+						arA1['h1] = 'h1e3;
 						arA23['h1] = 'h298;
 					end
 					11: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h0EA;
-						arA23['h1] = 'h1EB;
+						arA1['h1] = 'hea;
+						arA23['h1] = 'h1eb;
 					end
 					default: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 				endcase
 			7:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h2D9;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 'h2d9;
+						arA23['h1] = 1'sbx;
 					end
 					1: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 					2: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h006;
+						arA1['h1] = 'h6;
 						arA23['h1] = 'h388;
 					end
 					3: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h21C;
+						arA1['h1] = 'h21c;
 						arA23['h1] = 'h388;
 					end
 					4: begin
@@ -3497,827 +3562,841 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
+						arA1['h1] = 'h1c2;
 						arA23['h1] = 'h388;
 					end
 					6: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
+						arA1['h1] = 'h1e3;
 						arA23['h1] = 'h388;
 					end
 					7: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h00A;
+						arA1['h1] = 'ha;
 						arA23['h1] = 'h388;
 					end
 					8: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E2;
+						arA1['h1] = 'h1e2;
 						arA23['h1] = 'h388;
 					end
 					9: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
+						arA1['h1] = 'h1c2;
 						arA23['h1] = 'h388;
 					end
 					10: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
+						arA1['h1] = 'h1e3;
 						arA23['h1] = 'h388;
 					end
 					11: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h0EA;
-						arA23['h1] = 'h2D9;
+						arA1['h1] = 'hea;
+						arA23['h1] = 'h2d9;
 					end
 					default: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 				endcase
 			8:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1EA;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 'h1ea;
+						arA23['h1] = 1'sbx;
 					end
 					1: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 					2: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h006;
-						arA23['h1] = 'h32B;
+						arA1['h1] = 'h6;
+						arA23['h1] = 'h32b;
 					end
 					3: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h21C;
-						arA23['h1] = 'h32B;
+						arA1['h1] = 'h21c;
+						arA23['h1] = 'h32b;
 					end
 					4: begin
 						arIll['h1] = 1'b0;
 						arA1['h1] = 'h103;
-						arA23['h1] = 'h32B;
+						arA23['h1] = 'h32b;
 					end
 					5: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h32B;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h32b;
 					end
 					6: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h32B;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h32b;
 					end
 					7: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h00A;
-						arA23['h1] = 'h32B;
+						arA1['h1] = 'ha;
+						arA23['h1] = 'h32b;
 					end
 					8: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E2;
-						arA23['h1] = 'h32B;
+						arA1['h1] = 'h1e2;
+						arA23['h1] = 'h32b;
 					end
 					9: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1C2;
-						arA23['h1] = 'h32B;
+						arA1['h1] = 'h1c2;
+						arA23['h1] = 'h32b;
 					end
 					10: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h1E3;
-						arA23['h1] = 'h32B;
+						arA1['h1] = 'h1e3;
+						arA23['h1] = 'h32b;
 					end
 					11: begin
 						arIll['h1] = 1'b0;
-						arA1['h1] = 'h0EA;
-						arA23['h1] = 'h1EA;
+						arA1['h1] = 'hea;
+						arA23['h1] = 'h1ea;
 					end
 					default: begin
 						arIll['h1] = 1'b1;
-						arA1['h1] = 'sdX;
-						arA23['h1] = 'sdX;
+						arA1['h1] = 1'sbx;
+						arA23['h1] = 1'sbx;
 					end
 				endcase
 			default: begin
 				arIll['h1] = 1'b1;
-				arA1['h1] = 'sdX;
-				arA23['h1] = 'sdX;
+				arA1['h1] = 1'sbx;
+				arA23['h1] = 1'sbx;
 			end
 		endcase
+		(* full_case, parallel_case *)
 		case (movEa)
 			0:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h129;
-						arA23['h2] = 'sdX;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h129;
-						arA23['h2] = 'sdX;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h29f;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h29f;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h29F;
+						arA23['h2] = 'h29f;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h29f;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h29f;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h29f;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h29f;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h29f;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h29f;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
+						arA1['h2] = 'ha7;
 						arA23['h2] = 'h129;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			1:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h129;
-						arA23['h2] = 'sdX;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h129;
-						arA23['h2] = 'sdX;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h29f;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h29f;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h29F;
+						arA23['h2] = 'h29f;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h29f;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h29f;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h29f;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h29f;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h29f;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h29F;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h29f;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
+						arA1['h2] = 'ha7;
 						arA23['h2] = 'h129;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			2:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2F9;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2f9;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2F9;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2f9;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h3A9;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h3a9;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h3A9;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h3a9;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h3A9;
+						arA23['h2] = 'h3a9;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h3A9;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h3a9;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h3A9;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h3a9;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h3A9;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h3a9;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h3A9;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h3a9;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h3A9;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h3a9;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h3A9;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h3a9;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
-						arA23['h2] = 'h2F9;
+						arA1['h2] = 'ha7;
+						arA23['h2] = 'h2f9;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			3:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2FD;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2fd;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2FD;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2fd;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h3AD;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h3ad;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h3AD;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h3ad;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h3AD;
+						arA23['h2] = 'h3ad;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h3AD;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h3ad;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h3AD;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h3ad;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h3AD;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h3ad;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h3AD;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h3ad;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h3AD;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h3ad;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h3AD;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h3ad;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
-						arA23['h2] = 'h2FD;
+						arA1['h2] = 'ha7;
+						arA23['h2] = 'h2fd;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			4:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2FC;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2fc;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2FC;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2fc;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h38F;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h38f;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h38F;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h38f;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h38F;
+						arA23['h2] = 'h38f;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h38F;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h38f;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h38F;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h38f;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h38F;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h38f;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h38F;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h38f;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h38F;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h38f;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h38F;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h38f;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
-						arA23['h2] = 'h2FC;
+						arA1['h2] = 'ha7;
+						arA23['h2] = 'h2fc;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			5:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2DE;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2de;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2DE;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2de;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h38E;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h38e;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h38E;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h38e;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h38E;
+						arA23['h2] = 'h38e;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h38E;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h38e;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h38E;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h38e;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h38E;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h38e;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h38E;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h38e;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h38E;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h38e;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h38E;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h38e;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
-						arA23['h2] = 'h2DE;
+						arA1['h2] = 'ha7;
+						arA23['h2] = 'h2de;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			6:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1EF;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h1ef;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1EF;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h1ef;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h29C;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h29c;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h29C;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h29c;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h29C;
+						arA23['h2] = 'h29c;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h29C;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h29c;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h29C;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h29c;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h29C;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h29c;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h29C;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h29c;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h29C;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h29c;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h29C;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h29c;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
-						arA23['h2] = 'h1EF;
+						arA1['h2] = 'ha7;
+						arA23['h2] = 'h1ef;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			7:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2DD;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2dd;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h2DD;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h2dd;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h38C;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h38c;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h38C;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h38c;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h38C;
+						arA23['h2] = 'h38c;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h38C;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h38c;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h38C;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h38c;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h38C;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h38c;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h38C;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h38c;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h38C;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h38c;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h38C;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h38c;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
-						arA23['h2] = 'h2DD;
+						arA1['h2] = 'ha7;
+						arA23['h2] = 'h2dd;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			8:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1EE;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h1ee;
+						arA23['h2] = 1'sbx;
 					end
 					1: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1EE;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 'h1ee;
+						arA23['h2] = 1'sbx;
 					end
 					2: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00B;
-						arA23['h2] = 'h30F;
+						arA1['h2] = 'hb;
+						arA23['h2] = 'h30f;
 					end
 					3: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00F;
-						arA23['h2] = 'h30F;
+						arA1['h2] = 'hf;
+						arA23['h2] = 'h30f;
 					end
 					4: begin
 						arIll['h2] = 1'b0;
 						arA1['h2] = 'h179;
-						arA23['h2] = 'h30F;
+						arA23['h2] = 'h30f;
 					end
 					5: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h30F;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h30f;
 					end
 					6: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h30F;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h30f;
 					end
 					7: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h00E;
-						arA23['h2] = 'h30F;
+						arA1['h2] = 'he;
+						arA23['h2] = 'h30f;
 					end
 					8: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E6;
-						arA23['h2] = 'h30F;
+						arA1['h2] = 'h1e6;
+						arA23['h2] = 'h30f;
 					end
 					9: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1C6;
-						arA23['h2] = 'h30F;
+						arA1['h2] = 'h1c6;
+						arA23['h2] = 'h30f;
 					end
 					10: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h1E7;
-						arA23['h2] = 'h30F;
+						arA1['h2] = 'h1e7;
+						arA23['h2] = 'h30f;
 					end
 					11: begin
 						arIll['h2] = 1'b0;
-						arA1['h2] = 'h0A7;
-						arA23['h2] = 'h1EE;
+						arA1['h2] = 'ha7;
+						arA23['h2] = 'h1ee;
 					end
 					default: begin
 						arIll['h2] = 1'b1;
-						arA1['h2] = 'sdX;
-						arA23['h2] = 'sdX;
+						arA1['h2] = 1'sbx;
+						arA23['h2] = 1'sbx;
 					end
 				endcase
 			default: begin
 				arIll['h2] = 1'b1;
-				arA1['h2] = 'sdX;
-				arA23['h2] = 'sdX;
+				arA1['h2] = 1'sbx;
+				arA23['h2] = 1'sbx;
 			end
 		endcase
+		(* full_case, parallel_case *)
 		case (movEa)
 			0:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h121;
-						arA23['h3] = 'sdX;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h121;
-						arA23['h3] = 'sdX;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
-						arA23['h3] = 'h29B;
+						arA1['h3] = 'h6;
+						arA23['h3] = 'h29b;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
-						arA23['h3] = 'h29B;
+						arA1['h3] = 'h21c;
+						arA23['h3] = 'h29b;
 					end
 					4: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h103;
-						arA23['h3] = 'h29B;
+						arA23['h3] = 'h29b;
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h29B;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h29b;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h29B;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h29b;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
-						arA23['h3] = 'h29B;
+						arA1['h3] = 'ha;
+						arA23['h3] = 'h29b;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
-						arA23['h3] = 'h29B;
+						arA1['h3] = 'h1e2;
+						arA23['h3] = 'h29b;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h29B;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h29b;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h29B;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h29b;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
+						arA1['h3] = 'hea;
 						arA23['h3] = 'h121;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			1:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h279;
-						arA23['h3] = 'sdX;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h279;
-						arA23['h3] = 'sdX;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
+						arA1['h3] = 'h6;
 						arA23['h3] = 'h158;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
+						arA1['h3] = 'h21c;
 						arA23['h3] = 'h158;
 					end
 					4: begin
@@ -4327,337 +4406,342 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
+						arA1['h3] = 'h1c2;
 						arA23['h3] = 'h158;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
+						arA1['h3] = 'h1e3;
 						arA23['h3] = 'h158;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
+						arA1['h3] = 'ha;
 						arA23['h3] = 'h158;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
+						arA1['h3] = 'h1e2;
 						arA23['h3] = 'h158;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
+						arA1['h3] = 'h1c2;
 						arA23['h3] = 'h158;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
+						arA1['h3] = 'h1e3;
 						arA23['h3] = 'h158;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
+						arA1['h3] = 'hea;
 						arA23['h3] = 'h279;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			2:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2FA;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2fa;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2FA;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2fa;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
-						arA23['h3] = 'h3AB;
+						arA1['h3] = 'h6;
+						arA23['h3] = 'h3ab;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
-						arA23['h3] = 'h3AB;
+						arA1['h3] = 'h21c;
+						arA23['h3] = 'h3ab;
 					end
 					4: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h103;
-						arA23['h3] = 'h3AB;
+						arA23['h3] = 'h3ab;
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h3AB;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h3ab;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h3AB;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h3ab;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
-						arA23['h3] = 'h3AB;
+						arA1['h3] = 'ha;
+						arA23['h3] = 'h3ab;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
-						arA23['h3] = 'h3AB;
+						arA1['h3] = 'h1e2;
+						arA23['h3] = 'h3ab;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h3AB;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h3ab;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h3AB;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h3ab;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
-						arA23['h3] = 'h2FA;
+						arA1['h3] = 'hea;
+						arA23['h3] = 'h2fa;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			3:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2FE;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2fe;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2FE;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2fe;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
-						arA23['h3] = 'h3AF;
+						arA1['h3] = 'h6;
+						arA23['h3] = 'h3af;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
-						arA23['h3] = 'h3AF;
+						arA1['h3] = 'h21c;
+						arA23['h3] = 'h3af;
 					end
 					4: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h103;
-						arA23['h3] = 'h3AF;
+						arA23['h3] = 'h3af;
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h3AF;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h3af;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h3AF;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h3af;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
-						arA23['h3] = 'h3AF;
+						arA1['h3] = 'ha;
+						arA23['h3] = 'h3af;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
-						arA23['h3] = 'h3AF;
+						arA1['h3] = 'h1e2;
+						arA23['h3] = 'h3af;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h3AF;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h3af;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h3AF;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h3af;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
-						arA23['h3] = 'h2FE;
+						arA1['h3] = 'hea;
+						arA23['h3] = 'h2fe;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			4:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2F8;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2f8;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2F8;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2f8;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
-						arA23['h3] = 'h38B;
+						arA1['h3] = 'h6;
+						arA23['h3] = 'h38b;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
-						arA23['h3] = 'h38B;
+						arA1['h3] = 'h21c;
+						arA23['h3] = 'h38b;
 					end
 					4: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h103;
-						arA23['h3] = 'h38B;
+						arA23['h3] = 'h38b;
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h38B;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h38b;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h38B;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h38b;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
-						arA23['h3] = 'h38B;
+						arA1['h3] = 'ha;
+						arA23['h3] = 'h38b;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
-						arA23['h3] = 'h38B;
+						arA1['h3] = 'h1e2;
+						arA23['h3] = 'h38b;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h38B;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h38b;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h38B;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h38b;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
-						arA23['h3] = 'h2F8;
+						arA1['h3] = 'hea;
+						arA23['h3] = 'h2f8;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			5:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2DA;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2da;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2DA;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2da;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
-						arA23['h3] = 'h38A;
+						arA1['h3] = 'h6;
+						arA23['h3] = 'h38a;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
-						arA23['h3] = 'h38A;
+						arA1['h3] = 'h21c;
+						arA23['h3] = 'h38a;
 					end
 					4: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h103;
-						arA23['h3] = 'h38A;
+						arA23['h3] = 'h38a;
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h38A;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h38a;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h38A;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h38a;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
-						arA23['h3] = 'h38A;
+						arA1['h3] = 'ha;
+						arA23['h3] = 'h38a;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
-						arA23['h3] = 'h38A;
+						arA1['h3] = 'h1e2;
+						arA23['h3] = 'h38a;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h38A;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h38a;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h38A;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h38a;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
-						arA23['h3] = 'h2DA;
+						arA1['h3] = 'hea;
+						arA23['h3] = 'h2da;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			6:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1EB;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h1eb;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1EB;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h1eb;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
+						arA1['h3] = 'h6;
 						arA23['h3] = 'h298;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
+						arA1['h3] = 'h21c;
 						arA23['h3] = 'h298;
 					end
 					4: begin
@@ -4667,65 +4751,66 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
+						arA1['h3] = 'h1c2;
 						arA23['h3] = 'h298;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
+						arA1['h3] = 'h1e3;
 						arA23['h3] = 'h298;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
+						arA1['h3] = 'ha;
 						arA23['h3] = 'h298;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
+						arA1['h3] = 'h1e2;
 						arA23['h3] = 'h298;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
+						arA1['h3] = 'h1c2;
 						arA23['h3] = 'h298;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
+						arA1['h3] = 'h1e3;
 						arA23['h3] = 'h298;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
-						arA23['h3] = 'h1EB;
+						arA1['h3] = 'hea;
+						arA23['h3] = 'h1eb;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			7:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2D9;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2d9;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h2D9;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h2d9;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
+						arA1['h3] = 'h6;
 						arA23['h3] = 'h388;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
+						arA1['h3] = 'h21c;
 						arA23['h3] = 'h388;
 					end
 					4: begin
@@ -4735,299 +4820,305 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
+						arA1['h3] = 'h1c2;
 						arA23['h3] = 'h388;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
+						arA1['h3] = 'h1e3;
 						arA23['h3] = 'h388;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
+						arA1['h3] = 'ha;
 						arA23['h3] = 'h388;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
+						arA1['h3] = 'h1e2;
 						arA23['h3] = 'h388;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
+						arA1['h3] = 'h1c2;
 						arA23['h3] = 'h388;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
+						arA1['h3] = 'h1e3;
 						arA23['h3] = 'h388;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
-						arA23['h3] = 'h2D9;
+						arA1['h3] = 'hea;
+						arA23['h3] = 'h2d9;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			8:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1EA;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h1ea;
+						arA23['h3] = 1'sbx;
 					end
 					1: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1EA;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 'h1ea;
+						arA23['h3] = 1'sbx;
 					end
 					2: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h006;
-						arA23['h3] = 'h32B;
+						arA1['h3] = 'h6;
+						arA23['h3] = 'h32b;
 					end
 					3: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h21C;
-						arA23['h3] = 'h32B;
+						arA1['h3] = 'h21c;
+						arA23['h3] = 'h32b;
 					end
 					4: begin
 						arIll['h3] = 1'b0;
 						arA1['h3] = 'h103;
-						arA23['h3] = 'h32B;
+						arA23['h3] = 'h32b;
 					end
 					5: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h32B;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h32b;
 					end
 					6: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h32B;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h32b;
 					end
 					7: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h00A;
-						arA23['h3] = 'h32B;
+						arA1['h3] = 'ha;
+						arA23['h3] = 'h32b;
 					end
 					8: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E2;
-						arA23['h3] = 'h32B;
+						arA1['h3] = 'h1e2;
+						arA23['h3] = 'h32b;
 					end
 					9: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1C2;
-						arA23['h3] = 'h32B;
+						arA1['h3] = 'h1c2;
+						arA23['h3] = 'h32b;
 					end
 					10: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h1E3;
-						arA23['h3] = 'h32B;
+						arA1['h3] = 'h1e3;
+						arA23['h3] = 'h32b;
 					end
 					11: begin
 						arIll['h3] = 1'b0;
-						arA1['h3] = 'h0EA;
-						arA23['h3] = 'h1EA;
+						arA1['h3] = 'hea;
+						arA23['h3] = 'h1ea;
 					end
 					default: begin
 						arIll['h3] = 1'b1;
-						arA1['h3] = 'sdX;
-						arA23['h3] = 'sdX;
+						arA1['h3] = 1'sbx;
+						arA23['h3] = 1'sbx;
 					end
 				endcase
 			default: begin
 				arIll['h3] = 1'b1;
-				arA1['h3] = 'sdX;
-				arA23['h3] = 'sdX;
+				arA1['h3] = 1'sbx;
+				arA23['h3] = 1'sbx;
 			end
 		endcase
+		(* full_case, parallel_case *)
 		case (row86)
 			3'b000:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2D8;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2d8;
+						arA23['h5] = 1'sbx;
 					end
 					1: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 					2: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h006;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h6;
+						arA23['h5] = 'h2f3;
 					end
 					3: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h21C;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h21c;
+						arA23['h5] = 'h2f3;
 					end
 					4: begin
 						arIll['h5] = 1'b0;
 						arA1['h5] = 'h103;
-						arA23['h5] = 'h2F3;
+						arA23['h5] = 'h2f3;
 					end
 					5: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1C2;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1c2;
+						arA23['h5] = 'h2f3;
 					end
 					6: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E3;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1e3;
+						arA23['h5] = 'h2f3;
 					end
 					7: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00A;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'ha;
+						arA23['h5] = 'h2f3;
 					end
 					8: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E2;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1e2;
+						arA23['h5] = 'h2f3;
 					end
 					default: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 				endcase
 			3'b001:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2D8;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2d8;
+						arA23['h5] = 1'sbx;
 					end
 					1: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2DC;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2dc;
+						arA23['h5] = 1'sbx;
 					end
 					2: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h006;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h6;
+						arA23['h5] = 'h2f3;
 					end
 					3: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h21C;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h21c;
+						arA23['h5] = 'h2f3;
 					end
 					4: begin
 						arIll['h5] = 1'b0;
 						arA1['h5] = 'h103;
-						arA23['h5] = 'h2F3;
+						arA23['h5] = 'h2f3;
 					end
 					5: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1C2;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1c2;
+						arA23['h5] = 'h2f3;
 					end
 					6: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E3;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1e3;
+						arA23['h5] = 'h2f3;
 					end
 					7: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00A;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'ha;
+						arA23['h5] = 'h2f3;
 					end
 					8: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E2;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1e2;
+						arA23['h5] = 'h2f3;
 					end
 					default: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 				endcase
 			3'b010:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2DC;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2dc;
+						arA23['h5] = 1'sbx;
 					end
 					1: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2DC;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2dc;
+						arA23['h5] = 1'sbx;
 					end
 					2: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00B;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'hb;
+						arA23['h5] = 'h2f7;
 					end
 					3: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00F;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'hf;
+						arA23['h5] = 'h2f7;
 					end
 					4: begin
 						arIll['h5] = 1'b0;
 						arA1['h5] = 'h179;
-						arA23['h5] = 'h2F7;
+						arA23['h5] = 'h2f7;
 					end
 					5: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1C6;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'h1c6;
+						arA23['h5] = 'h2f7;
 					end
 					6: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E7;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'h1e7;
+						arA23['h5] = 'h2f7;
 					end
 					7: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00E;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'he;
+						arA23['h5] = 'h2f7;
 					end
 					8: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E6;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'h1e6;
+						arA23['h5] = 'h2f7;
 					end
 					default: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 				endcase
 			3'b011:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h5] = 1'b0;
 						arA1['h5] = 'h384;
-						arA23['h5] = 'sdX;
+						arA23['h5] = 1'sbx;
 					end
 					1: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h06C;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h6c;
+						arA23['h5] = 1'sbx;
 					end
 					2: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h006;
+						arA1['h5] = 'h6;
 						arA23['h5] = 'h380;
 					end
 					3: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h21C;
+						arA1['h5] = 'h21c;
 						arA23['h5] = 'h380;
 					end
 					4: begin
@@ -5037,209 +5128,213 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1C2;
+						arA1['h5] = 'h1c2;
 						arA23['h5] = 'h380;
 					end
 					6: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E3;
+						arA1['h5] = 'h1e3;
 						arA23['h5] = 'h380;
 					end
 					7: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00A;
+						arA1['h5] = 'ha;
 						arA23['h5] = 'h380;
 					end
 					8: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E2;
+						arA1['h5] = 'h1e2;
 						arA23['h5] = 'h380;
 					end
 					default: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 				endcase
 			3'b100:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2D8;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2d8;
+						arA23['h5] = 1'sbx;
 					end
 					1: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 					2: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h006;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h6;
+						arA23['h5] = 'h2f3;
 					end
 					3: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h21C;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h21c;
+						arA23['h5] = 'h2f3;
 					end
 					4: begin
 						arIll['h5] = 1'b0;
 						arA1['h5] = 'h103;
-						arA23['h5] = 'h2F3;
+						arA23['h5] = 'h2f3;
 					end
 					5: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1C2;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1c2;
+						arA23['h5] = 'h2f3;
 					end
 					6: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E3;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1e3;
+						arA23['h5] = 'h2f3;
 					end
 					7: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00A;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'ha;
+						arA23['h5] = 'h2f3;
 					end
 					8: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E2;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1e2;
+						arA23['h5] = 'h2f3;
 					end
 					default: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 				endcase
 			3'b101:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2D8;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2d8;
+						arA23['h5] = 1'sbx;
 					end
 					1: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2DC;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2dc;
+						arA23['h5] = 1'sbx;
 					end
 					2: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h006;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h6;
+						arA23['h5] = 'h2f3;
 					end
 					3: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h21C;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h21c;
+						arA23['h5] = 'h2f3;
 					end
 					4: begin
 						arIll['h5] = 1'b0;
 						arA1['h5] = 'h103;
-						arA23['h5] = 'h2F3;
+						arA23['h5] = 'h2f3;
 					end
 					5: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1C2;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1c2;
+						arA23['h5] = 'h2f3;
 					end
 					6: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E3;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1e3;
+						arA23['h5] = 'h2f3;
 					end
 					7: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00A;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'ha;
+						arA23['h5] = 'h2f3;
 					end
 					8: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E2;
-						arA23['h5] = 'h2F3;
+						arA1['h5] = 'h1e2;
+						arA23['h5] = 'h2f3;
 					end
 					default: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 				endcase
 			3'b110:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2DC;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2dc;
+						arA23['h5] = 1'sbx;
 					end
 					1: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h2DC;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h2dc;
+						arA23['h5] = 1'sbx;
 					end
 					2: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00B;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'hb;
+						arA23['h5] = 'h2f7;
 					end
 					3: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00F;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'hf;
+						arA23['h5] = 'h2f7;
 					end
 					4: begin
 						arIll['h5] = 1'b0;
 						arA1['h5] = 'h179;
-						arA23['h5] = 'h2F7;
+						arA23['h5] = 'h2f7;
 					end
 					5: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1C6;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'h1c6;
+						arA23['h5] = 'h2f7;
 					end
 					6: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E7;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'h1e7;
+						arA23['h5] = 'h2f7;
 					end
 					7: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00E;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'he;
+						arA23['h5] = 'h2f7;
 					end
 					8: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E6;
-						arA23['h5] = 'h2F7;
+						arA1['h5] = 'h1e6;
+						arA23['h5] = 'h2f7;
 					end
 					default: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 				endcase
 			3'b111:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h5] = 1'b0;
 						arA1['h5] = 'h384;
-						arA23['h5] = 'sdX;
+						arA23['h5] = 1'sbx;
 					end
 					1: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h06C;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 'h6c;
+						arA23['h5] = 1'sbx;
 					end
 					2: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h006;
+						arA1['h5] = 'h6;
 						arA23['h5] = 'h380;
 					end
 					3: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h21C;
+						arA1['h5] = 'h21c;
 						arA23['h5] = 'h380;
 					end
 					4: begin
@@ -5249,324 +5344,330 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1C2;
+						arA1['h5] = 'h1c2;
 						arA23['h5] = 'h380;
 					end
 					6: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E3;
+						arA1['h5] = 'h1e3;
 						arA23['h5] = 'h380;
 					end
 					7: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h00A;
+						arA1['h5] = 'ha;
 						arA23['h5] = 'h380;
 					end
 					8: begin
 						arIll['h5] = 1'b0;
-						arA1['h5] = 'h1E2;
+						arA1['h5] = 'h1e2;
 						arA23['h5] = 'h380;
 					end
 					default: begin
 						arIll['h5] = 1'b1;
-						arA1['h5] = 'sdX;
-						arA23['h5] = 'sdX;
+						arA1['h5] = 1'sbx;
+						arA23['h5] = 1'sbx;
 					end
 				endcase
 		endcase
+		(* full_case, parallel_case *)
 		case (row86)
 			3'b000:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C1;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 'h1c1;
+						arA23['h8] = 1'sbx;
 					end
 					1: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					2: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h006;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h6;
+						arA23['h8] = 'h1c3;
 					end
 					3: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h21C;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h21c;
+						arA23['h8] = 'h1c3;
 					end
 					4: begin
 						arIll['h8] = 1'b0;
 						arA1['h8] = 'h103;
-						arA23['h8] = 'h1C3;
+						arA23['h8] = 'h1c3;
 					end
 					5: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1c2;
+						arA23['h8] = 'h1c3;
 					end
 					6: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1e3;
+						arA23['h8] = 'h1c3;
 					end
 					7: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00A;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'ha;
+						arA23['h8] = 'h1c3;
 					end
 					8: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E2;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1e2;
+						arA23['h8] = 'h1c3;
 					end
 					9: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1c2;
+						arA23['h8] = 'h1c3;
 					end
 					10: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1e3;
+						arA23['h8] = 'h1c3;
 					end
 					11: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h0EA;
-						arA23['h8] = 'h1C1;
+						arA1['h8] = 'hea;
+						arA23['h8] = 'h1c1;
 					end
 					default: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 				endcase
 			3'b001:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C1;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 'h1c1;
+						arA23['h8] = 1'sbx;
 					end
 					1: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					2: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h006;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h6;
+						arA23['h8] = 'h1c3;
 					end
 					3: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h21C;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h21c;
+						arA23['h8] = 'h1c3;
 					end
 					4: begin
 						arIll['h8] = 1'b0;
 						arA1['h8] = 'h103;
-						arA23['h8] = 'h1C3;
+						arA23['h8] = 'h1c3;
 					end
 					5: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1c2;
+						arA23['h8] = 'h1c3;
 					end
 					6: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1e3;
+						arA23['h8] = 'h1c3;
 					end
 					7: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00A;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'ha;
+						arA23['h8] = 'h1c3;
 					end
 					8: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E2;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1e2;
+						arA23['h8] = 'h1c3;
 					end
 					9: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1c2;
+						arA23['h8] = 'h1c3;
 					end
 					10: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
-						arA23['h8] = 'h1C3;
+						arA1['h8] = 'h1e3;
+						arA23['h8] = 'h1c3;
 					end
 					11: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h0EA;
-						arA23['h8] = 'h1C1;
+						arA1['h8] = 'hea;
+						arA23['h8] = 'h1c1;
 					end
 					default: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 				endcase
 			3'b010:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C5;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 'h1c5;
+						arA23['h8] = 1'sbx;
 					end
 					1: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					2: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00B;
-						arA23['h8] = 'h1CB;
+						arA1['h8] = 'hb;
+						arA23['h8] = 'h1cb;
 					end
 					3: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00F;
-						arA23['h8] = 'h1CB;
+						arA1['h8] = 'hf;
+						arA23['h8] = 'h1cb;
 					end
 					4: begin
 						arIll['h8] = 1'b0;
 						arA1['h8] = 'h179;
-						arA23['h8] = 'h1CB;
+						arA23['h8] = 'h1cb;
 					end
 					5: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C6;
-						arA23['h8] = 'h1CB;
+						arA1['h8] = 'h1c6;
+						arA23['h8] = 'h1cb;
 					end
 					6: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E7;
-						arA23['h8] = 'h1CB;
+						arA1['h8] = 'h1e7;
+						arA23['h8] = 'h1cb;
 					end
 					7: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00E;
-						arA23['h8] = 'h1CB;
+						arA1['h8] = 'he;
+						arA23['h8] = 'h1cb;
 					end
 					8: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E6;
-						arA23['h8] = 'h1CB;
+						arA1['h8] = 'h1e6;
+						arA23['h8] = 'h1cb;
 					end
 					9: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C6;
-						arA23['h8] = 'h1CB;
+						arA1['h8] = 'h1c6;
+						arA23['h8] = 'h1cb;
 					end
 					10: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E7;
-						arA23['h8] = 'h1CB;
+						arA1['h8] = 'h1e7;
+						arA23['h8] = 'h1cb;
 					end
 					11: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h0A7;
-						arA23['h8] = 'h1C5;
+						arA1['h8] = 'ha7;
+						arA23['h8] = 'h1c5;
 					end
 					default: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 				endcase
 			3'b011:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h0A6;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 'ha6;
+						arA23['h8] = 1'sbx;
 					end
 					1: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					2: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h006;
-						arA23['h8] = 'h0A4;
+						arA1['h8] = 'h6;
+						arA23['h8] = 'ha4;
 					end
 					3: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h21C;
-						arA23['h8] = 'h0A4;
+						arA1['h8] = 'h21c;
+						arA23['h8] = 'ha4;
 					end
 					4: begin
 						arIll['h8] = 1'b0;
 						arA1['h8] = 'h103;
-						arA23['h8] = 'h0A4;
+						arA23['h8] = 'ha4;
 					end
 					5: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
-						arA23['h8] = 'h0A4;
+						arA1['h8] = 'h1c2;
+						arA23['h8] = 'ha4;
 					end
 					6: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
-						arA23['h8] = 'h0A4;
+						arA1['h8] = 'h1e3;
+						arA23['h8] = 'ha4;
 					end
 					7: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00A;
-						arA23['h8] = 'h0A4;
+						arA1['h8] = 'ha;
+						arA23['h8] = 'ha4;
 					end
 					8: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E2;
-						arA23['h8] = 'h0A4;
+						arA1['h8] = 'h1e2;
+						arA23['h8] = 'ha4;
 					end
 					9: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
-						arA23['h8] = 'h0A4;
+						arA1['h8] = 'h1c2;
+						arA23['h8] = 'ha4;
 					end
 					10: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
-						arA23['h8] = 'h0A4;
+						arA1['h8] = 'h1e3;
+						arA23['h8] = 'ha4;
 					end
 					11: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h0EA;
-						arA23['h8] = 'h0A6;
+						arA1['h8] = 'hea;
+						arA23['h8] = 'ha6;
 					end
 					default: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 				endcase
 			3'b100:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1CD;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 'h1cd;
+						arA23['h8] = 1'sbx;
 					end
 					1: begin
 						arIll['h8] = 1'b0;
 						arA1['h8] = 'h107;
-						arA23['h8] = 'sdX;
+						arA23['h8] = 1'sbx;
 					end
 					2: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h006;
+						arA1['h8] = 'h6;
 						arA23['h8] = 'h299;
 					end
 					3: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h21C;
+						arA1['h8] = 'h21c;
 						arA23['h8] = 'h299;
 					end
 					4: begin
@@ -5576,65 +5677,66 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
+						arA1['h8] = 'h1c2;
 						arA23['h8] = 'h299;
 					end
 					6: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
+						arA1['h8] = 'h1e3;
 						arA23['h8] = 'h299;
 					end
 					7: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00A;
+						arA1['h8] = 'ha;
 						arA23['h8] = 'h299;
 					end
 					8: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E2;
+						arA1['h8] = 'h1e2;
 						arA23['h8] = 'h299;
 					end
 					9: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					10: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					11: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					default: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 				endcase
 			3'b101:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					1: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					2: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h006;
+						arA1['h8] = 'h6;
 						arA23['h8] = 'h299;
 					end
 					3: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h21C;
+						arA1['h8] = 'h21c;
 						arA23['h8] = 'h299;
 					end
 					4: begin
@@ -5644,475 +5746,483 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
+						arA1['h8] = 'h1c2;
 						arA23['h8] = 'h299;
 					end
 					6: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
+						arA1['h8] = 'h1e3;
 						arA23['h8] = 'h299;
 					end
 					7: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00A;
+						arA1['h8] = 'ha;
 						arA23['h8] = 'h299;
 					end
 					8: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E2;
+						arA1['h8] = 'h1e2;
 						arA23['h8] = 'h299;
 					end
 					9: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					10: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					11: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					default: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 				endcase
 			3'b110:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					1: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					2: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00B;
-						arA23['h8] = 'h29D;
+						arA1['h8] = 'hb;
+						arA23['h8] = 'h29d;
 					end
 					3: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00F;
-						arA23['h8] = 'h29D;
+						arA1['h8] = 'hf;
+						arA23['h8] = 'h29d;
 					end
 					4: begin
 						arIll['h8] = 1'b0;
 						arA1['h8] = 'h179;
-						arA23['h8] = 'h29D;
+						arA23['h8] = 'h29d;
 					end
 					5: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C6;
-						arA23['h8] = 'h29D;
+						arA1['h8] = 'h1c6;
+						arA23['h8] = 'h29d;
 					end
 					6: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E7;
-						arA23['h8] = 'h29D;
+						arA1['h8] = 'h1e7;
+						arA23['h8] = 'h29d;
 					end
 					7: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00E;
-						arA23['h8] = 'h29D;
+						arA1['h8] = 'he;
+						arA23['h8] = 'h29d;
 					end
 					8: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E6;
-						arA23['h8] = 'h29D;
+						arA1['h8] = 'h1e6;
+						arA23['h8] = 'h29d;
 					end
 					9: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					10: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					11: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					default: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 				endcase
 			3'b111:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h0AE;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 'hae;
+						arA23['h8] = 1'sbx;
 					end
 					1: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 					2: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h006;
-						arA23['h8] = 'h0AC;
+						arA1['h8] = 'h6;
+						arA23['h8] = 'hac;
 					end
 					3: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h21C;
-						arA23['h8] = 'h0AC;
+						arA1['h8] = 'h21c;
+						arA23['h8] = 'hac;
 					end
 					4: begin
 						arIll['h8] = 1'b0;
 						arA1['h8] = 'h103;
-						arA23['h8] = 'h0AC;
+						arA23['h8] = 'hac;
 					end
 					5: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
-						arA23['h8] = 'h0AC;
+						arA1['h8] = 'h1c2;
+						arA23['h8] = 'hac;
 					end
 					6: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
-						arA23['h8] = 'h0AC;
+						arA1['h8] = 'h1e3;
+						arA23['h8] = 'hac;
 					end
 					7: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h00A;
-						arA23['h8] = 'h0AC;
+						arA1['h8] = 'ha;
+						arA23['h8] = 'hac;
 					end
 					8: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E2;
-						arA23['h8] = 'h0AC;
+						arA1['h8] = 'h1e2;
+						arA23['h8] = 'hac;
 					end
 					9: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1C2;
-						arA23['h8] = 'h0AC;
+						arA1['h8] = 'h1c2;
+						arA23['h8] = 'hac;
 					end
 					10: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h1E3;
-						arA23['h8] = 'h0AC;
+						arA1['h8] = 'h1e3;
+						arA23['h8] = 'hac;
 					end
 					11: begin
 						arIll['h8] = 1'b0;
-						arA1['h8] = 'h0EA;
-						arA23['h8] = 'h0AE;
+						arA1['h8] = 'hea;
+						arA23['h8] = 'hae;
 					end
 					default: begin
 						arIll['h8] = 1'b1;
-						arA1['h8] = 'sdX;
-						arA23['h8] = 'sdX;
+						arA1['h8] = 1'sbx;
+						arA23['h8] = 1'sbx;
 					end
 				endcase
 		endcase
+		(* full_case, parallel_case *)
 		case (row86)
 			3'b000:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C1;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c1;
+						arA23['h9] = 1'sbx;
 					end
 					1: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					2: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h006;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h6;
+						arA23['h9] = 'h1c3;
 					end
 					3: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h21C;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h21c;
+						arA23['h9] = 'h1c3;
 					end
 					4: begin
 						arIll['h9] = 1'b0;
 						arA1['h9] = 'h103;
-						arA23['h9] = 'h1C3;
+						arA23['h9] = 'h1c3;
 					end
 					5: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C2;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1c2;
+						arA23['h9] = 'h1c3;
 					end
 					6: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E3;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1e3;
+						arA23['h9] = 'h1c3;
 					end
 					7: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00A;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'ha;
+						arA23['h9] = 'h1c3;
 					end
 					8: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E2;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1e2;
+						arA23['h9] = 'h1c3;
 					end
 					9: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C2;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1c2;
+						arA23['h9] = 'h1c3;
 					end
 					10: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E3;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1e3;
+						arA23['h9] = 'h1c3;
 					end
 					11: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h0EA;
-						arA23['h9] = 'h1C1;
+						arA1['h9] = 'hea;
+						arA23['h9] = 'h1c1;
 					end
 					default: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 				endcase
 			3'b001:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C1;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c1;
+						arA23['h9] = 1'sbx;
 					end
 					1: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C1;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c1;
+						arA23['h9] = 1'sbx;
 					end
 					2: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h006;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h6;
+						arA23['h9] = 'h1c3;
 					end
 					3: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h21C;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h21c;
+						arA23['h9] = 'h1c3;
 					end
 					4: begin
 						arIll['h9] = 1'b0;
 						arA1['h9] = 'h103;
-						arA23['h9] = 'h1C3;
+						arA23['h9] = 'h1c3;
 					end
 					5: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C2;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1c2;
+						arA23['h9] = 'h1c3;
 					end
 					6: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E3;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1e3;
+						arA23['h9] = 'h1c3;
 					end
 					7: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00A;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'ha;
+						arA23['h9] = 'h1c3;
 					end
 					8: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E2;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1e2;
+						arA23['h9] = 'h1c3;
 					end
 					9: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C2;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1c2;
+						arA23['h9] = 'h1c3;
 					end
 					10: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E3;
-						arA23['h9] = 'h1C3;
+						arA1['h9] = 'h1e3;
+						arA23['h9] = 'h1c3;
 					end
 					11: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h0EA;
-						arA23['h9] = 'h1C1;
+						arA1['h9] = 'hea;
+						arA23['h9] = 'h1c1;
 					end
 					default: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 				endcase
 			3'b010:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C5;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c5;
+						arA23['h9] = 1'sbx;
 					end
 					1: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C5;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c5;
+						arA23['h9] = 1'sbx;
 					end
 					2: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00B;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'hb;
+						arA23['h9] = 'h1cb;
 					end
 					3: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00F;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'hf;
+						arA23['h9] = 'h1cb;
 					end
 					4: begin
 						arIll['h9] = 1'b0;
 						arA1['h9] = 'h179;
-						arA23['h9] = 'h1CB;
+						arA23['h9] = 'h1cb;
 					end
 					5: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C6;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1c6;
+						arA23['h9] = 'h1cb;
 					end
 					6: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E7;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1e7;
+						arA23['h9] = 'h1cb;
 					end
 					7: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00E;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'he;
+						arA23['h9] = 'h1cb;
 					end
 					8: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E6;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1e6;
+						arA23['h9] = 'h1cb;
 					end
 					9: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C6;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1c6;
+						arA23['h9] = 'h1cb;
 					end
 					10: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E7;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1e7;
+						arA23['h9] = 'h1cb;
 					end
 					11: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h0A7;
-						arA23['h9] = 'h1C5;
+						arA1['h9] = 'ha7;
+						arA23['h9] = 'h1c5;
 					end
 					default: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 				endcase
 			3'b011:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C9;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c9;
+						arA23['h9] = 1'sbx;
 					end
 					1: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C9;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c9;
+						arA23['h9] = 1'sbx;
 					end
 					2: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h006;
-						arA23['h9] = 'h1C7;
+						arA1['h9] = 'h6;
+						arA23['h9] = 'h1c7;
 					end
 					3: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h21C;
-						arA23['h9] = 'h1C7;
+						arA1['h9] = 'h21c;
+						arA23['h9] = 'h1c7;
 					end
 					4: begin
 						arIll['h9] = 1'b0;
 						arA1['h9] = 'h103;
-						arA23['h9] = 'h1C7;
+						arA23['h9] = 'h1c7;
 					end
 					5: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C2;
-						arA23['h9] = 'h1C7;
+						arA1['h9] = 'h1c2;
+						arA23['h9] = 'h1c7;
 					end
 					6: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E3;
-						arA23['h9] = 'h1C7;
+						arA1['h9] = 'h1e3;
+						arA23['h9] = 'h1c7;
 					end
 					7: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00A;
-						arA23['h9] = 'h1C7;
+						arA1['h9] = 'ha;
+						arA23['h9] = 'h1c7;
 					end
 					8: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E2;
-						arA23['h9] = 'h1C7;
+						arA1['h9] = 'h1e2;
+						arA23['h9] = 'h1c7;
 					end
 					9: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C2;
-						arA23['h9] = 'h1C7;
+						arA1['h9] = 'h1c2;
+						arA23['h9] = 'h1c7;
 					end
 					10: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E3;
-						arA23['h9] = 'h1C7;
+						arA1['h9] = 'h1e3;
+						arA23['h9] = 'h1c7;
 					end
 					11: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h0EA;
-						arA23['h9] = 'h1C9;
+						arA1['h9] = 'hea;
+						arA23['h9] = 'h1c9;
 					end
 					default: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 				endcase
 			3'b100:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C1;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c1;
+						arA23['h9] = 1'sbx;
 					end
 					1: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h10F;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h10f;
+						arA23['h9] = 1'sbx;
 					end
 					2: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h006;
+						arA1['h9] = 'h6;
 						arA23['h9] = 'h299;
 					end
 					3: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h21C;
+						arA1['h9] = 'h21c;
 						arA23['h9] = 'h299;
 					end
 					4: begin
@@ -6122,65 +6232,66 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C2;
+						arA1['h9] = 'h1c2;
 						arA23['h9] = 'h299;
 					end
 					6: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E3;
+						arA1['h9] = 'h1e3;
 						arA23['h9] = 'h299;
 					end
 					7: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00A;
+						arA1['h9] = 'ha;
 						arA23['h9] = 'h299;
 					end
 					8: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E2;
+						arA1['h9] = 'h1e2;
 						arA23['h9] = 'h299;
 					end
 					9: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					10: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					11: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					default: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 				endcase
 			3'b101:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C1;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c1;
+						arA23['h9] = 1'sbx;
 					end
 					1: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h10F;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h10f;
+						arA23['h9] = 1'sbx;
 					end
 					2: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h006;
+						arA1['h9] = 'h6;
 						arA23['h9] = 'h299;
 					end
 					3: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h21C;
+						arA1['h9] = 'h21c;
 						arA23['h9] = 'h299;
 					end
 					4: begin
@@ -6190,475 +6301,483 @@ module pla_lined (
 					end
 					5: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C2;
+						arA1['h9] = 'h1c2;
 						arA23['h9] = 'h299;
 					end
 					6: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E3;
+						arA1['h9] = 'h1e3;
 						arA23['h9] = 'h299;
 					end
 					7: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00A;
+						arA1['h9] = 'ha;
 						arA23['h9] = 'h299;
 					end
 					8: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E2;
+						arA1['h9] = 'h1e2;
 						arA23['h9] = 'h299;
 					end
 					9: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					10: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					11: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					default: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 				endcase
 			3'b110:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C5;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c5;
+						arA23['h9] = 1'sbx;
 					end
 					1: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h10B;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h10b;
+						arA23['h9] = 1'sbx;
 					end
 					2: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00B;
-						arA23['h9] = 'h29D;
+						arA1['h9] = 'hb;
+						arA23['h9] = 'h29d;
 					end
 					3: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00F;
-						arA23['h9] = 'h29D;
+						arA1['h9] = 'hf;
+						arA23['h9] = 'h29d;
 					end
 					4: begin
 						arIll['h9] = 1'b0;
 						arA1['h9] = 'h179;
-						arA23['h9] = 'h29D;
+						arA23['h9] = 'h29d;
 					end
 					5: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C6;
-						arA23['h9] = 'h29D;
+						arA1['h9] = 'h1c6;
+						arA23['h9] = 'h29d;
 					end
 					6: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E7;
-						arA23['h9] = 'h29D;
+						arA1['h9] = 'h1e7;
+						arA23['h9] = 'h29d;
 					end
 					7: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00E;
-						arA23['h9] = 'h29D;
+						arA1['h9] = 'he;
+						arA23['h9] = 'h29d;
 					end
 					8: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E6;
-						arA23['h9] = 'h29D;
+						arA1['h9] = 'h1e6;
+						arA23['h9] = 'h29d;
 					end
 					9: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					10: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					11: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 					default: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 				endcase
 			3'b111:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C5;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c5;
+						arA23['h9] = 1'sbx;
 					end
 					1: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C5;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 'h1c5;
+						arA23['h9] = 1'sbx;
 					end
 					2: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00B;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'hb;
+						arA23['h9] = 'h1cb;
 					end
 					3: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00F;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'hf;
+						arA23['h9] = 'h1cb;
 					end
 					4: begin
 						arIll['h9] = 1'b0;
 						arA1['h9] = 'h179;
-						arA23['h9] = 'h1CB;
+						arA23['h9] = 'h1cb;
 					end
 					5: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C6;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1c6;
+						arA23['h9] = 'h1cb;
 					end
 					6: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E7;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1e7;
+						arA23['h9] = 'h1cb;
 					end
 					7: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h00E;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'he;
+						arA23['h9] = 'h1cb;
 					end
 					8: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E6;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1e6;
+						arA23['h9] = 'h1cb;
 					end
 					9: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1C6;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1c6;
+						arA23['h9] = 'h1cb;
 					end
 					10: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h1E7;
-						arA23['h9] = 'h1CB;
+						arA1['h9] = 'h1e7;
+						arA23['h9] = 'h1cb;
 					end
 					11: begin
 						arIll['h9] = 1'b0;
-						arA1['h9] = 'h0A7;
-						arA23['h9] = 'h1C5;
+						arA1['h9] = 'ha7;
+						arA23['h9] = 'h1c5;
 					end
 					default: begin
 						arIll['h9] = 1'b1;
-						arA1['h9] = 'sdX;
-						arA23['h9] = 'sdX;
+						arA1['h9] = 1'sbx;
+						arA23['h9] = 1'sbx;
 					end
 				endcase
 		endcase
+		(* full_case, parallel_case *)
 		case (row86)
 			3'b000:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D1;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d1;
+						arA23['hb] = 1'sbx;
 					end
 					1: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					2: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h006;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h6;
+						arA23['hb] = 'h1d3;
 					end
 					3: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h21C;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h21c;
+						arA23['hb] = 'h1d3;
 					end
 					4: begin
 						arIll['hb] = 1'b0;
 						arA1['hb] = 'h103;
-						arA23['hb] = 'h1D3;
+						arA23['hb] = 'h1d3;
 					end
 					5: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C2;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1c2;
+						arA23['hb] = 'h1d3;
 					end
 					6: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E3;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1e3;
+						arA23['hb] = 'h1d3;
 					end
 					7: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00A;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'ha;
+						arA23['hb] = 'h1d3;
 					end
 					8: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E2;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1e2;
+						arA23['hb] = 'h1d3;
 					end
 					9: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C2;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1c2;
+						arA23['hb] = 'h1d3;
 					end
 					10: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E3;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1e3;
+						arA23['hb] = 'h1d3;
 					end
 					11: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h0EA;
-						arA23['hb] = 'h1D1;
+						arA1['hb] = 'hea;
+						arA23['hb] = 'h1d1;
 					end
 					default: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 				endcase
 			3'b001:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D1;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d1;
+						arA23['hb] = 1'sbx;
 					end
 					1: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D1;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d1;
+						arA23['hb] = 1'sbx;
 					end
 					2: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h006;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h6;
+						arA23['hb] = 'h1d3;
 					end
 					3: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h21C;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h21c;
+						arA23['hb] = 'h1d3;
 					end
 					4: begin
 						arIll['hb] = 1'b0;
 						arA1['hb] = 'h103;
-						arA23['hb] = 'h1D3;
+						arA23['hb] = 'h1d3;
 					end
 					5: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C2;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1c2;
+						arA23['hb] = 'h1d3;
 					end
 					6: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E3;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1e3;
+						arA23['hb] = 'h1d3;
 					end
 					7: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00A;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'ha;
+						arA23['hb] = 'h1d3;
 					end
 					8: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E2;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1e2;
+						arA23['hb] = 'h1d3;
 					end
 					9: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C2;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1c2;
+						arA23['hb] = 'h1d3;
 					end
 					10: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E3;
-						arA23['hb] = 'h1D3;
+						arA1['hb] = 'h1e3;
+						arA23['hb] = 'h1d3;
 					end
 					11: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h0EA;
-						arA23['hb] = 'h1D1;
+						arA1['hb] = 'hea;
+						arA23['hb] = 'h1d1;
 					end
 					default: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 				endcase
 			3'b010:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D5;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d5;
+						arA23['hb] = 1'sbx;
 					end
 					1: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D5;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d5;
+						arA23['hb] = 1'sbx;
 					end
 					2: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00B;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'hb;
+						arA23['hb] = 'h1d7;
 					end
 					3: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00F;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'hf;
+						arA23['hb] = 'h1d7;
 					end
 					4: begin
 						arIll['hb] = 1'b0;
 						arA1['hb] = 'h179;
-						arA23['hb] = 'h1D7;
+						arA23['hb] = 'h1d7;
 					end
 					5: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C6;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1c6;
+						arA23['hb] = 'h1d7;
 					end
 					6: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E7;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1e7;
+						arA23['hb] = 'h1d7;
 					end
 					7: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00E;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'he;
+						arA23['hb] = 'h1d7;
 					end
 					8: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E6;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1e6;
+						arA23['hb] = 'h1d7;
 					end
 					9: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C6;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1c6;
+						arA23['hb] = 'h1d7;
 					end
 					10: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E7;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1e7;
+						arA23['hb] = 'h1d7;
 					end
 					11: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h0A7;
-						arA23['hb] = 'h1D5;
+						arA1['hb] = 'ha7;
+						arA23['hb] = 'h1d5;
 					end
 					default: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 				endcase
 			3'b011:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D9;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d9;
+						arA23['hb] = 1'sbx;
 					end
 					1: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D9;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d9;
+						arA23['hb] = 1'sbx;
 					end
 					2: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h006;
-						arA23['hb] = 'h1CF;
+						arA1['hb] = 'h6;
+						arA23['hb] = 'h1cf;
 					end
 					3: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h21C;
-						arA23['hb] = 'h1CF;
+						arA1['hb] = 'h21c;
+						arA23['hb] = 'h1cf;
 					end
 					4: begin
 						arIll['hb] = 1'b0;
 						arA1['hb] = 'h103;
-						arA23['hb] = 'h1CF;
+						arA23['hb] = 'h1cf;
 					end
 					5: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C2;
-						arA23['hb] = 'h1CF;
+						arA1['hb] = 'h1c2;
+						arA23['hb] = 'h1cf;
 					end
 					6: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E3;
-						arA23['hb] = 'h1CF;
+						arA1['hb] = 'h1e3;
+						arA23['hb] = 'h1cf;
 					end
 					7: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00A;
-						arA23['hb] = 'h1CF;
+						arA1['hb] = 'ha;
+						arA23['hb] = 'h1cf;
 					end
 					8: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E2;
-						arA23['hb] = 'h1CF;
+						arA1['hb] = 'h1e2;
+						arA23['hb] = 'h1cf;
 					end
 					9: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C2;
-						arA23['hb] = 'h1CF;
+						arA1['hb] = 'h1c2;
+						arA23['hb] = 'h1cf;
 					end
 					10: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E3;
-						arA23['hb] = 'h1CF;
+						arA1['hb] = 'h1e3;
+						arA23['hb] = 'h1cf;
 					end
 					11: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h0EA;
-						arA23['hb] = 'h1D9;
+						arA1['hb] = 'hea;
+						arA23['hb] = 'h1d9;
 					end
 					default: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 				endcase
 			3'b100:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hb] = 1'b0;
 						arA1['hb] = 'h100;
-						arA23['hb] = 'sdX;
+						arA23['hb] = 1'sbx;
 					end
 					1: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h06B;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h6b;
+						arA23['hb] = 1'sbx;
 					end
 					2: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h006;
+						arA1['hb] = 'h6;
 						arA23['hb] = 'h299;
 					end
 					3: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h21C;
+						arA1['hb] = 'h21c;
 						arA23['hb] = 'h299;
 					end
 					4: begin
@@ -6668,65 +6787,66 @@ module pla_lined (
 					end
 					5: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C2;
+						arA1['hb] = 'h1c2;
 						arA23['hb] = 'h299;
 					end
 					6: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E3;
+						arA1['hb] = 'h1e3;
 						arA23['hb] = 'h299;
 					end
 					7: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00A;
+						arA1['hb] = 'ha;
 						arA23['hb] = 'h299;
 					end
 					8: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E2;
+						arA1['hb] = 'h1e2;
 						arA23['hb] = 'h299;
 					end
 					9: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					10: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					11: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					default: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 				endcase
 			3'b101:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hb] = 1'b0;
 						arA1['hb] = 'h100;
-						arA23['hb] = 'sdX;
+						arA23['hb] = 1'sbx;
 					end
 					1: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h06B;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h6b;
+						arA23['hb] = 1'sbx;
 					end
 					2: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h006;
+						arA1['hb] = 'h6;
 						arA23['hb] = 'h299;
 					end
 					3: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h21C;
+						arA1['hb] = 'h21c;
 						arA23['hb] = 'h299;
 					end
 					4: begin
@@ -6736,475 +6856,483 @@ module pla_lined (
 					end
 					5: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C2;
+						arA1['hb] = 'h1c2;
 						arA23['hb] = 'h299;
 					end
 					6: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E3;
+						arA1['hb] = 'h1e3;
 						arA23['hb] = 'h299;
 					end
 					7: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00A;
+						arA1['hb] = 'ha;
 						arA23['hb] = 'h299;
 					end
 					8: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E2;
+						arA1['hb] = 'h1e2;
 						arA23['hb] = 'h299;
 					end
 					9: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					10: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					11: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					default: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 				endcase
 			3'b110:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h10C;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h10c;
+						arA23['hb] = 1'sbx;
 					end
 					1: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h06F;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h6f;
+						arA23['hb] = 1'sbx;
 					end
 					2: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00B;
-						arA23['hb] = 'h29D;
+						arA1['hb] = 'hb;
+						arA23['hb] = 'h29d;
 					end
 					3: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00F;
-						arA23['hb] = 'h29D;
+						arA1['hb] = 'hf;
+						arA23['hb] = 'h29d;
 					end
 					4: begin
 						arIll['hb] = 1'b0;
 						arA1['hb] = 'h179;
-						arA23['hb] = 'h29D;
+						arA23['hb] = 'h29d;
 					end
 					5: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C6;
-						arA23['hb] = 'h29D;
+						arA1['hb] = 'h1c6;
+						arA23['hb] = 'h29d;
 					end
 					6: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E7;
-						arA23['hb] = 'h29D;
+						arA1['hb] = 'h1e7;
+						arA23['hb] = 'h29d;
 					end
 					7: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00E;
-						arA23['hb] = 'h29D;
+						arA1['hb] = 'he;
+						arA23['hb] = 'h29d;
 					end
 					8: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E6;
-						arA23['hb] = 'h29D;
+						arA1['hb] = 'h1e6;
+						arA23['hb] = 'h29d;
 					end
 					9: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					10: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					11: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 					default: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 				endcase
 			3'b111:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D5;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d5;
+						arA23['hb] = 1'sbx;
 					end
 					1: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1D5;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 'h1d5;
+						arA23['hb] = 1'sbx;
 					end
 					2: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00B;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'hb;
+						arA23['hb] = 'h1d7;
 					end
 					3: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00F;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'hf;
+						arA23['hb] = 'h1d7;
 					end
 					4: begin
 						arIll['hb] = 1'b0;
 						arA1['hb] = 'h179;
-						arA23['hb] = 'h1D7;
+						arA23['hb] = 'h1d7;
 					end
 					5: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C6;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1c6;
+						arA23['hb] = 'h1d7;
 					end
 					6: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E7;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1e7;
+						arA23['hb] = 'h1d7;
 					end
 					7: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h00E;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'he;
+						arA23['hb] = 'h1d7;
 					end
 					8: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E6;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1e6;
+						arA23['hb] = 'h1d7;
 					end
 					9: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1C6;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1c6;
+						arA23['hb] = 'h1d7;
 					end
 					10: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h1E7;
-						arA23['hb] = 'h1D7;
+						arA1['hb] = 'h1e7;
+						arA23['hb] = 'h1d7;
 					end
 					11: begin
 						arIll['hb] = 1'b0;
-						arA1['hb] = 'h0A7;
-						arA23['hb] = 'h1D5;
+						arA1['hb] = 'ha7;
+						arA23['hb] = 'h1d5;
 					end
 					default: begin
 						arIll['hb] = 1'b1;
-						arA1['hb] = 'sdX;
-						arA23['hb] = 'sdX;
+						arA1['hb] = 1'sbx;
+						arA23['hb] = 1'sbx;
 					end
 				endcase
 		endcase
+		(* full_case, parallel_case *)
 		case (row86)
 			3'b000:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C1;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h1c1;
+						arA23['hc] = 1'sbx;
 					end
 					1: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					2: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h006;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h6;
+						arA23['hc] = 'h1c3;
 					end
 					3: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h21C;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h21c;
+						arA23['hc] = 'h1c3;
 					end
 					4: begin
 						arIll['hc] = 1'b0;
 						arA1['hc] = 'h103;
-						arA23['hc] = 'h1C3;
+						arA23['hc] = 'h1c3;
 					end
 					5: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1c2;
+						arA23['hc] = 'h1c3;
 					end
 					6: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1e3;
+						arA23['hc] = 'h1c3;
 					end
 					7: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00A;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'ha;
+						arA23['hc] = 'h1c3;
 					end
 					8: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E2;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1e2;
+						arA23['hc] = 'h1c3;
 					end
 					9: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1c2;
+						arA23['hc] = 'h1c3;
 					end
 					10: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1e3;
+						arA23['hc] = 'h1c3;
 					end
 					11: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h0EA;
-						arA23['hc] = 'h1C1;
+						arA1['hc] = 'hea;
+						arA23['hc] = 'h1c1;
 					end
 					default: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 				endcase
 			3'b001:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C1;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h1c1;
+						arA23['hc] = 1'sbx;
 					end
 					1: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					2: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h006;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h6;
+						arA23['hc] = 'h1c3;
 					end
 					3: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h21C;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h21c;
+						arA23['hc] = 'h1c3;
 					end
 					4: begin
 						arIll['hc] = 1'b0;
 						arA1['hc] = 'h103;
-						arA23['hc] = 'h1C3;
+						arA23['hc] = 'h1c3;
 					end
 					5: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1c2;
+						arA23['hc] = 'h1c3;
 					end
 					6: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1e3;
+						arA23['hc] = 'h1c3;
 					end
 					7: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00A;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'ha;
+						arA23['hc] = 'h1c3;
 					end
 					8: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E2;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1e2;
+						arA23['hc] = 'h1c3;
 					end
 					9: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1c2;
+						arA23['hc] = 'h1c3;
 					end
 					10: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
-						arA23['hc] = 'h1C3;
+						arA1['hc] = 'h1e3;
+						arA23['hc] = 'h1c3;
 					end
 					11: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h0EA;
-						arA23['hc] = 'h1C1;
+						arA1['hc] = 'hea;
+						arA23['hc] = 'h1c1;
 					end
 					default: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 				endcase
 			3'b010:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C5;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h1c5;
+						arA23['hc] = 1'sbx;
 					end
 					1: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					2: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00B;
-						arA23['hc] = 'h1CB;
+						arA1['hc] = 'hb;
+						arA23['hc] = 'h1cb;
 					end
 					3: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00F;
-						arA23['hc] = 'h1CB;
+						arA1['hc] = 'hf;
+						arA23['hc] = 'h1cb;
 					end
 					4: begin
 						arIll['hc] = 1'b0;
 						arA1['hc] = 'h179;
-						arA23['hc] = 'h1CB;
+						arA23['hc] = 'h1cb;
 					end
 					5: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C6;
-						arA23['hc] = 'h1CB;
+						arA1['hc] = 'h1c6;
+						arA23['hc] = 'h1cb;
 					end
 					6: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E7;
-						arA23['hc] = 'h1CB;
+						arA1['hc] = 'h1e7;
+						arA23['hc] = 'h1cb;
 					end
 					7: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00E;
-						arA23['hc] = 'h1CB;
+						arA1['hc] = 'he;
+						arA23['hc] = 'h1cb;
 					end
 					8: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E6;
-						arA23['hc] = 'h1CB;
+						arA1['hc] = 'h1e6;
+						arA23['hc] = 'h1cb;
 					end
 					9: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C6;
-						arA23['hc] = 'h1CB;
+						arA1['hc] = 'h1c6;
+						arA23['hc] = 'h1cb;
 					end
 					10: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E7;
-						arA23['hc] = 'h1CB;
+						arA1['hc] = 'h1e7;
+						arA23['hc] = 'h1cb;
 					end
 					11: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h0A7;
-						arA23['hc] = 'h1C5;
+						arA1['hc] = 'ha7;
+						arA23['hc] = 'h1c5;
 					end
 					default: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 				endcase
 			3'b011:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h15B;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h15b;
+						arA23['hc] = 1'sbx;
 					end
 					1: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					2: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h006;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h6;
+						arA23['hc] = 'h15a;
 					end
 					3: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h21C;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h21c;
+						arA23['hc] = 'h15a;
 					end
 					4: begin
 						arIll['hc] = 1'b0;
 						arA1['hc] = 'h103;
-						arA23['hc] = 'h15A;
+						arA23['hc] = 'h15a;
 					end
 					5: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1c2;
+						arA23['hc] = 'h15a;
 					end
 					6: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1e3;
+						arA23['hc] = 'h15a;
 					end
 					7: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00A;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'ha;
+						arA23['hc] = 'h15a;
 					end
 					8: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E2;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1e2;
+						arA23['hc] = 'h15a;
 					end
 					9: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1c2;
+						arA23['hc] = 'h15a;
 					end
 					10: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1e3;
+						arA23['hc] = 'h15a;
 					end
 					11: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h0EA;
-						arA23['hc] = 'h15B;
+						arA1['hc] = 'hea;
+						arA23['hc] = 'h15b;
 					end
 					default: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 				endcase
 			3'b100:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1CD;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h1cd;
+						arA23['hc] = 1'sbx;
 					end
 					1: begin
 						arIll['hc] = 1'b0;
 						arA1['hc] = 'h107;
-						arA23['hc] = 'sdX;
+						arA23['hc] = 1'sbx;
 					end
 					2: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h006;
+						arA1['hc] = 'h6;
 						arA23['hc] = 'h299;
 					end
 					3: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h21C;
+						arA1['hc] = 'h21c;
 						arA23['hc] = 'h299;
 					end
 					4: begin
@@ -7214,65 +7342,66 @@ module pla_lined (
 					end
 					5: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
+						arA1['hc] = 'h1c2;
 						arA23['hc] = 'h299;
 					end
 					6: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
+						arA1['hc] = 'h1e3;
 						arA23['hc] = 'h299;
 					end
 					7: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00A;
+						arA1['hc] = 'ha;
 						arA23['hc] = 'h299;
 					end
 					8: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E2;
+						arA1['hc] = 'h1e2;
 						arA23['hc] = 'h299;
 					end
 					9: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					10: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					11: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					default: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 				endcase
 			3'b101:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h3E3;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h3e3;
+						arA23['hc] = 1'sbx;
 					end
 					1: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h3E3;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h3e3;
+						arA23['hc] = 1'sbx;
 					end
 					2: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h006;
+						arA1['hc] = 'h6;
 						arA23['hc] = 'h299;
 					end
 					3: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h21C;
+						arA1['hc] = 'h21c;
 						arA23['hc] = 'h299;
 					end
 					4: begin
@@ -7282,475 +7411,483 @@ module pla_lined (
 					end
 					5: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
+						arA1['hc] = 'h1c2;
 						arA23['hc] = 'h299;
 					end
 					6: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
+						arA1['hc] = 'h1e3;
 						arA23['hc] = 'h299;
 					end
 					7: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00A;
+						arA1['hc] = 'ha;
 						arA23['hc] = 'h299;
 					end
 					8: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E2;
+						arA1['hc] = 'h1e2;
 						arA23['hc] = 'h299;
 					end
 					9: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					10: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					11: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					default: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 				endcase
 			3'b110:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					1: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h3E3;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h3e3;
+						arA23['hc] = 1'sbx;
 					end
 					2: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00B;
-						arA23['hc] = 'h29D;
+						arA1['hc] = 'hb;
+						arA23['hc] = 'h29d;
 					end
 					3: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00F;
-						arA23['hc] = 'h29D;
+						arA1['hc] = 'hf;
+						arA23['hc] = 'h29d;
 					end
 					4: begin
 						arIll['hc] = 1'b0;
 						arA1['hc] = 'h179;
-						arA23['hc] = 'h29D;
+						arA23['hc] = 'h29d;
 					end
 					5: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C6;
-						arA23['hc] = 'h29D;
+						arA1['hc] = 'h1c6;
+						arA23['hc] = 'h29d;
 					end
 					6: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E7;
-						arA23['hc] = 'h29D;
+						arA1['hc] = 'h1e7;
+						arA23['hc] = 'h29d;
 					end
 					7: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00E;
-						arA23['hc] = 'h29D;
+						arA1['hc] = 'he;
+						arA23['hc] = 'h29d;
 					end
 					8: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E6;
-						arA23['hc] = 'h29D;
+						arA1['hc] = 'h1e6;
+						arA23['hc] = 'h29d;
 					end
 					9: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					10: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					11: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					default: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 				endcase
 			3'b111:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h15B;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 'h15b;
+						arA23['hc] = 1'sbx;
 					end
 					1: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 					2: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h006;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h6;
+						arA23['hc] = 'h15a;
 					end
 					3: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h21C;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h21c;
+						arA23['hc] = 'h15a;
 					end
 					4: begin
 						arIll['hc] = 1'b0;
 						arA1['hc] = 'h103;
-						arA23['hc] = 'h15A;
+						arA23['hc] = 'h15a;
 					end
 					5: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1c2;
+						arA23['hc] = 'h15a;
 					end
 					6: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1e3;
+						arA23['hc] = 'h15a;
 					end
 					7: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h00A;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'ha;
+						arA23['hc] = 'h15a;
 					end
 					8: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E2;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1e2;
+						arA23['hc] = 'h15a;
 					end
 					9: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1C2;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1c2;
+						arA23['hc] = 'h15a;
 					end
 					10: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h1E3;
-						arA23['hc] = 'h15A;
+						arA1['hc] = 'h1e3;
+						arA23['hc] = 'h15a;
 					end
 					11: begin
 						arIll['hc] = 1'b0;
-						arA1['hc] = 'h0EA;
-						arA23['hc] = 'h15B;
+						arA1['hc] = 'hea;
+						arA23['hc] = 'h15b;
 					end
 					default: begin
 						arIll['hc] = 1'b1;
-						arA1['hc] = 'sdX;
-						arA23['hc] = 'sdX;
+						arA1['hc] = 1'sbx;
+						arA23['hc] = 1'sbx;
 					end
 				endcase
 		endcase
+		(* full_case, parallel_case *)
 		case (row86)
 			3'b000:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C1;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c1;
+						arA23['hd] = 1'sbx;
 					end
 					1: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					2: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h006;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h6;
+						arA23['hd] = 'h1c3;
 					end
 					3: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h21C;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h21c;
+						arA23['hd] = 'h1c3;
 					end
 					4: begin
 						arIll['hd] = 1'b0;
 						arA1['hd] = 'h103;
-						arA23['hd] = 'h1C3;
+						arA23['hd] = 'h1c3;
 					end
 					5: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C2;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1c2;
+						arA23['hd] = 'h1c3;
 					end
 					6: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E3;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1e3;
+						arA23['hd] = 'h1c3;
 					end
 					7: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00A;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'ha;
+						arA23['hd] = 'h1c3;
 					end
 					8: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E2;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1e2;
+						arA23['hd] = 'h1c3;
 					end
 					9: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C2;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1c2;
+						arA23['hd] = 'h1c3;
 					end
 					10: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E3;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1e3;
+						arA23['hd] = 'h1c3;
 					end
 					11: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h0EA;
-						arA23['hd] = 'h1C1;
+						arA1['hd] = 'hea;
+						arA23['hd] = 'h1c1;
 					end
 					default: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 				endcase
 			3'b001:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C1;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c1;
+						arA23['hd] = 1'sbx;
 					end
 					1: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C1;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c1;
+						arA23['hd] = 1'sbx;
 					end
 					2: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h006;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h6;
+						arA23['hd] = 'h1c3;
 					end
 					3: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h21C;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h21c;
+						arA23['hd] = 'h1c3;
 					end
 					4: begin
 						arIll['hd] = 1'b0;
 						arA1['hd] = 'h103;
-						arA23['hd] = 'h1C3;
+						arA23['hd] = 'h1c3;
 					end
 					5: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C2;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1c2;
+						arA23['hd] = 'h1c3;
 					end
 					6: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E3;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1e3;
+						arA23['hd] = 'h1c3;
 					end
 					7: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00A;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'ha;
+						arA23['hd] = 'h1c3;
 					end
 					8: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E2;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1e2;
+						arA23['hd] = 'h1c3;
 					end
 					9: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C2;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1c2;
+						arA23['hd] = 'h1c3;
 					end
 					10: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E3;
-						arA23['hd] = 'h1C3;
+						arA1['hd] = 'h1e3;
+						arA23['hd] = 'h1c3;
 					end
 					11: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h0EA;
-						arA23['hd] = 'h1C1;
+						arA1['hd] = 'hea;
+						arA23['hd] = 'h1c1;
 					end
 					default: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 				endcase
 			3'b010:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C5;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c5;
+						arA23['hd] = 1'sbx;
 					end
 					1: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C5;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c5;
+						arA23['hd] = 1'sbx;
 					end
 					2: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00B;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'hb;
+						arA23['hd] = 'h1cb;
 					end
 					3: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00F;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'hf;
+						arA23['hd] = 'h1cb;
 					end
 					4: begin
 						arIll['hd] = 1'b0;
 						arA1['hd] = 'h179;
-						arA23['hd] = 'h1CB;
+						arA23['hd] = 'h1cb;
 					end
 					5: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C6;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1c6;
+						arA23['hd] = 'h1cb;
 					end
 					6: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E7;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1e7;
+						arA23['hd] = 'h1cb;
 					end
 					7: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00E;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'he;
+						arA23['hd] = 'h1cb;
 					end
 					8: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E6;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1e6;
+						arA23['hd] = 'h1cb;
 					end
 					9: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C6;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1c6;
+						arA23['hd] = 'h1cb;
 					end
 					10: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E7;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1e7;
+						arA23['hd] = 'h1cb;
 					end
 					11: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h0A7;
-						arA23['hd] = 'h1C5;
+						arA1['hd] = 'ha7;
+						arA23['hd] = 'h1c5;
 					end
 					default: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 				endcase
 			3'b011:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C9;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c9;
+						arA23['hd] = 1'sbx;
 					end
 					1: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C9;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c9;
+						arA23['hd] = 1'sbx;
 					end
 					2: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h006;
-						arA23['hd] = 'h1C7;
+						arA1['hd] = 'h6;
+						arA23['hd] = 'h1c7;
 					end
 					3: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h21C;
-						arA23['hd] = 'h1C7;
+						arA1['hd] = 'h21c;
+						arA23['hd] = 'h1c7;
 					end
 					4: begin
 						arIll['hd] = 1'b0;
 						arA1['hd] = 'h103;
-						arA23['hd] = 'h1C7;
+						arA23['hd] = 'h1c7;
 					end
 					5: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C2;
-						arA23['hd] = 'h1C7;
+						arA1['hd] = 'h1c2;
+						arA23['hd] = 'h1c7;
 					end
 					6: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E3;
-						arA23['hd] = 'h1C7;
+						arA1['hd] = 'h1e3;
+						arA23['hd] = 'h1c7;
 					end
 					7: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00A;
-						arA23['hd] = 'h1C7;
+						arA1['hd] = 'ha;
+						arA23['hd] = 'h1c7;
 					end
 					8: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E2;
-						arA23['hd] = 'h1C7;
+						arA1['hd] = 'h1e2;
+						arA23['hd] = 'h1c7;
 					end
 					9: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C2;
-						arA23['hd] = 'h1C7;
+						arA1['hd] = 'h1c2;
+						arA23['hd] = 'h1c7;
 					end
 					10: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E3;
-						arA23['hd] = 'h1C7;
+						arA1['hd] = 'h1e3;
+						arA23['hd] = 'h1c7;
 					end
 					11: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h0EA;
-						arA23['hd] = 'h1C9;
+						arA1['hd] = 'hea;
+						arA23['hd] = 'h1c9;
 					end
 					default: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 				endcase
 			3'b100:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C1;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c1;
+						arA23['hd] = 1'sbx;
 					end
 					1: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h10F;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h10f;
+						arA23['hd] = 1'sbx;
 					end
 					2: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h006;
+						arA1['hd] = 'h6;
 						arA23['hd] = 'h299;
 					end
 					3: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h21C;
+						arA1['hd] = 'h21c;
 						arA23['hd] = 'h299;
 					end
 					4: begin
@@ -7760,65 +7897,66 @@ module pla_lined (
 					end
 					5: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C2;
+						arA1['hd] = 'h1c2;
 						arA23['hd] = 'h299;
 					end
 					6: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E3;
+						arA1['hd] = 'h1e3;
 						arA23['hd] = 'h299;
 					end
 					7: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00A;
+						arA1['hd] = 'ha;
 						arA23['hd] = 'h299;
 					end
 					8: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E2;
+						arA1['hd] = 'h1e2;
 						arA23['hd] = 'h299;
 					end
 					9: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					10: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					11: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					default: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 				endcase
 			3'b101:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C1;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c1;
+						arA23['hd] = 1'sbx;
 					end
 					1: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h10F;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h10f;
+						arA23['hd] = 1'sbx;
 					end
 					2: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h006;
+						arA1['hd] = 'h6;
 						arA23['hd] = 'h299;
 					end
 					3: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h21C;
+						arA1['hd] = 'h21c;
 						arA23['hd] = 'h299;
 					end
 					4: begin
@@ -7828,181 +7966,184 @@ module pla_lined (
 					end
 					5: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C2;
+						arA1['hd] = 'h1c2;
 						arA23['hd] = 'h299;
 					end
 					6: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E3;
+						arA1['hd] = 'h1e3;
 						arA23['hd] = 'h299;
 					end
 					7: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00A;
+						arA1['hd] = 'ha;
 						arA23['hd] = 'h299;
 					end
 					8: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E2;
+						arA1['hd] = 'h1e2;
 						arA23['hd] = 'h299;
 					end
 					9: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					10: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					11: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					default: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 				endcase
 			3'b110:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C5;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c5;
+						arA23['hd] = 1'sbx;
 					end
 					1: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h10B;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h10b;
+						arA23['hd] = 1'sbx;
 					end
 					2: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00B;
-						arA23['hd] = 'h29D;
+						arA1['hd] = 'hb;
+						arA23['hd] = 'h29d;
 					end
 					3: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00F;
-						arA23['hd] = 'h29D;
+						arA1['hd] = 'hf;
+						arA23['hd] = 'h29d;
 					end
 					4: begin
 						arIll['hd] = 1'b0;
 						arA1['hd] = 'h179;
-						arA23['hd] = 'h29D;
+						arA23['hd] = 'h29d;
 					end
 					5: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C6;
-						arA23['hd] = 'h29D;
+						arA1['hd] = 'h1c6;
+						arA23['hd] = 'h29d;
 					end
 					6: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E7;
-						arA23['hd] = 'h29D;
+						arA1['hd] = 'h1e7;
+						arA23['hd] = 'h29d;
 					end
 					7: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00E;
-						arA23['hd] = 'h29D;
+						arA1['hd] = 'he;
+						arA23['hd] = 'h29d;
 					end
 					8: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E6;
-						arA23['hd] = 'h29D;
+						arA1['hd] = 'h1e6;
+						arA23['hd] = 'h29d;
 					end
 					9: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					10: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					11: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 					default: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 				endcase
 			3'b111:
+				(* full_case, parallel_case *)
 				case (col)
 					0: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C5;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c5;
+						arA23['hd] = 1'sbx;
 					end
 					1: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C5;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 'h1c5;
+						arA23['hd] = 1'sbx;
 					end
 					2: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00B;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'hb;
+						arA23['hd] = 'h1cb;
 					end
 					3: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00F;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'hf;
+						arA23['hd] = 'h1cb;
 					end
 					4: begin
 						arIll['hd] = 1'b0;
 						arA1['hd] = 'h179;
-						arA23['hd] = 'h1CB;
+						arA23['hd] = 'h1cb;
 					end
 					5: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C6;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1c6;
+						arA23['hd] = 'h1cb;
 					end
 					6: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E7;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1e7;
+						arA23['hd] = 'h1cb;
 					end
 					7: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h00E;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'he;
+						arA23['hd] = 'h1cb;
 					end
 					8: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E6;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1e6;
+						arA23['hd] = 'h1cb;
 					end
 					9: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1C6;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1c6;
+						arA23['hd] = 'h1cb;
 					end
 					10: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h1E7;
-						arA23['hd] = 'h1CB;
+						arA1['hd] = 'h1e7;
+						arA23['hd] = 'h1cb;
 					end
 					11: begin
 						arIll['hd] = 1'b0;
-						arA1['hd] = 'h0A7;
-						arA23['hd] = 'h1C5;
+						arA1['hd] = 'ha7;
+						arA23['hd] = 'h1c5;
 					end
 					default: begin
 						arIll['hd] = 1'b1;
-						arA1['hd] = 'sdX;
-						arA23['hd] = 'sdX;
+						arA1['hd] = 1'sbx;
+						arA23['hd] = 1'sbx;
 					end
 				endcase
 		endcase
 	end
+	initial _sv2v_0 = 0;
 endmodule

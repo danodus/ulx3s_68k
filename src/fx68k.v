@@ -1,6 +1,5 @@
 module fx68k (
 	clk,
-	HALTn,
 	extReset,
 	pwrUp,
 	enPhi1,
@@ -29,24 +28,24 @@ module fx68k (
 	oEdb,
 	eab
 );
+	reg _sv2v_0;
 	input clk;
-	input HALTn;
 	input extReset;
 	input pwrUp;
 	input enPhi1;
 	input enPhi2;
-	output eRWn;
-	output ASn;
-	output LDSn;
-	output UDSn;
+	output wire eRWn;
+	output wire ASn;
+	output wire LDSn;
+	output wire UDSn;
 	output reg E;
-	output VMAn;
-	output FC0;
-	output FC1;
-	output FC2;
-	output BGn;
-	output oRESETn;
-	output oHALTEDn;
+	output wire VMAn;
+	output wire FC0;
+	output wire FC1;
+	output wire FC2;
+	output wire BGn;
+	output wire oRESETn;
+	output wire oHALTEDn;
 	input DTACKn;
 	input VPAn;
 	input BERRn;
@@ -56,45 +55,44 @@ module fx68k (
 	input IPL1n;
 	input IPL2n;
 	input [15:0] iEdb;
-	output [15:0] oEdb;
-	output [23:1] eab;
-	wire [4:0] Clks;
-	assign Clks[4] = clk;
-	assign Clks[3] = extReset;
-	assign Clks[2] = pwrUp;
-	assign Clks[1] = enPhi1;
-	assign Clks[0] = enPhi2;
+	output wire [15:0] oEdb;
+	output wire [23:1] eab;
+	wire Clks_clk;
+	wire Clks_extReset;
+	wire Clks_pwrUp;
+	wire Clks_enPhi1;
+	wire Clks_enPhi2;
+	assign Clks_clk = clk;
+	assign Clks_extReset = extReset;
+	assign Clks_pwrUp = pwrUp;
+	assign Clks_enPhi1 = enPhi1;
+	assign Clks_enPhi2 = enPhi2;
 	wire wClk;
 	reg [31:0] tState;
-	localparam [31:0] T4 = 4;
-	wire enT1 = (Clks[1] & (tState == T4)) & ~wClk;
-	localparam [31:0] T1 = 1;
-	wire enT2 = Clks[0] & (tState == T1);
-	localparam [31:0] T2 = 2;
-	wire enT3 = Clks[1] & (tState == T2);
-	localparam [31:0] T0 = 0;
-	localparam [31:0] T3 = 3;
-	wire enT4 = Clks[0] & ((tState == T0) | (tState == T3));
-	always @(posedge Clks[4])
-		if (Clks[2])
-			tState <= T0;
+	wire enT1 = (Clks_enPhi1 & (tState == 32'd4)) & ~wClk;
+	wire enT2 = Clks_enPhi2 & (tState == 32'd1);
+	wire enT3 = Clks_enPhi1 & (tState == 32'd2);
+	wire enT4 = Clks_enPhi2 & ((tState == 32'd0) | (tState == 32'd3));
+	always @(posedge Clks_clk)
+		if (Clks_pwrUp)
+			tState <= 32'd0;
 		else
 			case (tState)
-				T0:
-					if (Clks[0])
-						tState <= T4;
-				T1:
-					if (Clks[0])
-						tState <= T2;
-				T2:
-					if (Clks[1])
-						tState <= T3;
-				T3:
-					if (Clks[0])
-						tState <= T4;
-				T4:
-					if (Clks[1])
-						tState <= (wClk ? T0 : T1);
+				32'd0:
+					if (Clks_enPhi2)
+						tState <= 32'd4;
+				32'd1:
+					if (Clks_enPhi2)
+						tState <= 32'd2;
+				32'd2:
+					if (Clks_enPhi1)
+						tState <= 32'd3;
+				32'd3:
+					if (Clks_enPhi2)
+						tState <= 32'd4;
+				32'd4:
+					if (Clks_enPhi1)
+						tState <= (wClk ? 32'd0 : 32'd1);
 			endcase
 	reg rDtack;
 	reg rBerr;
@@ -102,60 +100,58 @@ module fx68k (
 	reg [2:0] iIpl;
 	reg Vpai;
 	reg BeI;
-	reg Halti;
 	reg BRi;
 	reg BgackI;
 	reg BeiDelay;
 	wire BeDebounced = ~(BeI | BeiDelay);
-	always @(posedge Clks[4])
-		if (Clks[2]) begin
+	always @(posedge Clks_clk)
+		if (Clks_pwrUp) begin
 			rBerr <= 1'b0;
 			BeI <= 1'b0;
 		end
-		else if (Clks[0]) begin
+		else if (Clks_enPhi2) begin
 			rDtack <= DTACKn;
 			rBerr <= BERRn;
 			rIpl <= ~{IPL2n, IPL1n, IPL0n};
 			iIpl <= rIpl;
 		end
-		else if (Clks[1]) begin
+		else if (Clks_enPhi1) begin
 			Vpai <= VPAn;
 			BeI <= rBerr;
 			BeiDelay <= BeI;
-			BgackI <= BGACKn;
 			BRi <= BRn;
-			Halti <= HALTn;
+			BgackI <= BGACKn;
 		end
 	localparam NANO_WIDTH = 68;
-	reg [NANO_WIDTH - 1:0] nanoLatch;
-	wire [NANO_WIDTH - 1:0] nanoOutput;
+	reg [67:0] nanoLatch;
+	wire [67:0] nanoOutput;
 	localparam UROM_WIDTH = 17;
-	reg [UROM_WIDTH - 1:0] microLatch;
-	wire [UROM_WIDTH - 1:0] microOutput;
+	reg [16:0] microLatch;
+	wire [16:0] microOutput;
 	localparam UADDR_WIDTH = 10;
-	reg [UADDR_WIDTH - 1:0] microAddr;
-	wire [UADDR_WIDTH - 1:0] nma;
+	reg [9:0] microAddr;
+	wire [9:0] nma;
 	localparam NADDR_WIDTH = 9;
-	reg [NADDR_WIDTH - 1:0] nanoAddr;
-	wire [NADDR_WIDTH - 1:0] orgAddr;
+	reg [8:0] nanoAddr;
+	wire [8:0] orgAddr;
 	wire rstUrom;
 	microToNanoAddr microToNanoAddr(
 		.uAddr(nma),
 		.orgAddr(orgAddr)
 	);
 	nanoRom nanoRom(
-		.clk(Clks[4]),
+		.clk(Clks_clk),
 		.nanoAddr(nanoAddr),
 		.nanoOutput(nanoOutput)
 	);
 	uRom uRom(
-		.clk(Clks[4]),
+		.clk(Clks_clk),
 		.microAddr(microAddr),
 		.microOutput(microOutput)
 	);
-	localparam RSTP0_NMA = 'h002;
-	always @(posedge Clks[4]) begin
-		if (Clks[2]) begin
+	localparam RSTP0_NMA = 'h2;
+	always @(posedge Clks_clk) begin
+		if (Clks_pwrUp) begin
 			microAddr <= RSTP0_NMA;
 			nanoAddr <= RSTP0_NMA;
 		end
@@ -163,20 +159,21 @@ module fx68k (
 			microAddr <= nma;
 			nanoAddr <= orgAddr;
 		end
-		if (Clks[3]) begin
-			microLatch <= 'sd0;
-			nanoLatch <= 'sd0;
+		if (Clks_extReset) begin
+			microLatch <= 1'sb0;
+			nanoLatch <= 1'sb0;
 		end
 		else if (rstUrom) begin
-			{microLatch[16], microLatch[15], microLatch[0]} <= 'sd0;
-			nanoLatch <= 'sd0;
+			{microLatch[16], microLatch[15], microLatch[0]} <= 1'sb0;
+			nanoLatch <= 1'sb0;
 		end
 		else if (enT3) begin
 			microLatch <= microOutput;
 			nanoLatch <= nanoOutput;
 		end
 	end
-	wire [104:0] Nanod;
+	wire [55:0] Nanod;
+	wire [48:0] Nanod2;
 	wire [41:0] Irdecod;
 	reg Tpend;
 	reg intPend;
@@ -186,7 +183,7 @@ module fx68k (
 	wire [7:0] ccr;
 	wire [15:0] psw = {pswT, 1'b0, pswS, 2'b00, pswI, ccr};
 	reg [15:0] ftu;
-	wire [15:0] Irc;
+	reg [15:0] Irc;
 	reg [15:0] Ir;
 	reg [15:0] Ird;
 	wire [15:0] alue;
@@ -195,19 +192,20 @@ module fx68k (
 	wire au05z;
 	wire dcr4;
 	wire ze;
-	wire [UADDR_WIDTH - 1:0] a1;
-	wire [UADDR_WIDTH - 1:0] a2;
-	wire [UADDR_WIDTH - 1:0] a3;
+	wire [9:0] a1;
+	wire [9:0] a2;
+	wire [9:0] a3;
 	wire isPriv;
 	wire isIllegal;
 	wire isLineA;
 	wire isLineF;
-	always @(posedge Clks[4])
-		if (enT1)
-			if (Nanod[81])
+	always @(posedge Clks_clk)
+		if (enT1) begin
+			if (Nanod[33])
 				Ird <= Ir;
 			else if (microLatch[0])
 				Ir <= Irc;
+		end
 	wire [3:0] tvn;
 	wire waitBusCycle;
 	wire busStarting;
@@ -217,7 +215,7 @@ module fx68k (
 	wire bgBlock;
 	wire busAvail;
 	wire addrOe;
-	wire busIsByte = Nanod[101] & (Irdecod[32] | Irdecod[31]);
+	wire busIsByte = Nanod[52] & (Irdecod[32] | Irdecod[31]);
 	wire aob0;
 	reg iStop;
 	reg A0Err;
@@ -231,7 +229,7 @@ module fx68k (
 	reg Err6591;
 	wire iAddrErr = rAddrErr & addrOe;
 	wire enErrClk;
-	assign rstUrom = Clks[1] & enErrClk;
+	assign rstUrom = Clks_enPhi1 & enErrClk;
 	uaddrDecode uaddrDecode(
 		.opcode(Ir),
 		.a1(a1),
@@ -244,7 +242,8 @@ module fx68k (
 		.lineBmap()
 	);
 	sequencer sequencer(
-		.Clks(Clks),
+		.Clks_clk(Clks_clk),
+		.Clks_extReset(Clks_extReset),
 		.enT3(enT3),
 		.microLatch(microLatch),
 		.Ird(Ird),
@@ -273,9 +272,15 @@ module fx68k (
 		.alue01(alue[1:0]),
 		.i11(Irc[11])
 	);
+	wire [16:1] sv2v_tmp_excUnit_Irc;
+	always @(*) Irc = sv2v_tmp_excUnit_Irc;
 	excUnit excUnit(
-		.Clks(Clks),
+		.Clks_clk(Clks_clk),
+		.Clks_extReset(Clks_extReset),
+		.Clks_pwrUp(Clks_pwrUp),
+		.Clks_enPhi2(Clks_enPhi2),
 		.Nanod(Nanod),
+		.Nanod2(Nanod2),
 		.Irdecod(Irdecod),
 		.enT1(enT1),
 		.enT2(enT2),
@@ -292,14 +297,15 @@ module fx68k (
 		.AblOut(Abl),
 		.eab(eab),
 		.aob0(aob0),
-		.Irc(Irc),
+		.Irc(sv2v_tmp_excUnit_Irc),
 		.oEdb(oEdb),
 		.alue(alue),
 		.ccr(ccr)
 	);
 	nDecoder3 nDecoder(
-		.Clks(Clks),
+		.Clks_clk(Clks_clk),
 		.Nanod(Nanod),
+		.Nanod2(Nanod2),
 		.Irdecod(Irdecod),
 		.enT2(enT2),
 		.enT4(enT4),
@@ -311,15 +317,19 @@ module fx68k (
 		.Irdecod(Irdecod)
 	);
 	busControl busControl(
-		.Clks(Clks),
+		.Clks_clk(Clks_clk),
+		.Clks_extReset(Clks_extReset),
+		.Clks_pwrUp(Clks_pwrUp),
+		.Clks_enPhi1(Clks_enPhi1),
+		.Clks_enPhi2(Clks_enPhi2),
 		.enT1(enT1),
 		.enT4(enT4),
-		.permStart(Nanod[104]),
-		.permStop(Nanod[103]),
+		.permStart(Nanod[55]),
+		.permStop(Nanod[54]),
 		.iStop(iStop),
 		.aob0(aob0),
-		.isWrite(Nanod[102]),
-		.isRmc(Nanod[100]),
+		.isWrite(Nanod[53]),
+		.isRmc(Nanod2[0]),
 		.isByte(busIsByte),
 		.busAvail(busAvail),
 		.bciWrite(bciWrite),
@@ -337,10 +347,13 @@ module fx68k (
 		.eRWn(eRWn)
 	);
 	busArbiter busArbiter(
-		.Clks(Clks),
+		.Clks_clk(Clks_clk),
+		.Clks_extReset(Clks_extReset),
+		.Clks_enPhi1(Clks_enPhi1),
+		.Clks_enPhi2(Clks_enPhi2),
 		.BRi(BRi),
 		.BgackI(BgackI),
-		.Halti(Halti),
+		.Halti(1'b1),
 		.bgBlock(bgBlock),
 		.busAvail(busAvail),
 		.BGn(BGn)
@@ -350,25 +363,25 @@ module fx68k (
 	reg oHalted;
 	assign oRESETn = !oReset;
 	assign oHALTEDn = !oHalted;
-	always @(posedge Clks[4])
-		if (Clks[2]) begin
+	always @(posedge Clks_clk)
+		if (Clks_pwrUp) begin
 			oReset <= 1'b0;
 			oHalted <= 1'b0;
 		end
 		else if (enT1) begin
-			oReset <= (uFc == 2'b01) & !Nanod[104];
-			oHalted <= (uFc == 2'b10) & !Nanod[104];
+			oReset <= (uFc == 2'b01) & !Nanod[55];
+			oHalted <= (uFc == 2'b10) & !Nanod[55];
 		end
 	reg [2:0] rFC;
 	assign {FC2, FC1, FC0} = rFC;
-	assign Iac = rFC == 3'b111;
-	always @(posedge Clks[4])
-		if (Clks[3])
-			rFC <= 'sd0;
-		else if (enT1 & Nanod[104]) begin
+	assign Iac = {rFC == 3'b111};
+	always @(posedge Clks_clk)
+		if (Clks_extReset)
+			rFC <= 1'sb0;
+		else if (enT1 & Nanod[55]) begin
 			rFC[2] <= pswS;
-			rFC[1] <= microLatch[16] | (~microLatch[15] & Irdecod[41]);
-			rFC[0] <= microLatch[15] | (~microLatch[16] & ~Irdecod[41]);
+			rFC[1] <= microLatch[16] | (~microLatch[15] & ~Irdecod[41]);
+			rFC[0] <= microLatch[15] | (~microLatch[16] & Irdecod[41]);
 		end
 	reg [2:0] inl;
 	reg updIll;
@@ -376,22 +389,23 @@ module fx68k (
 	wire nmi = iIpl == 3'b111;
 	wire iplStable = iIpl == rIpl;
 	wire iplComp = iIpl > pswI;
-	always @(posedge Clks[4]) begin
-		if (Clks[3]) begin
+	always @(posedge Clks_clk) begin
+		if (Clks_extReset) begin
 			intPend <= 1'b0;
 			prevNmi <= 1'b0;
 		end
 		else begin
-			if (Clks[0])
+			if (Clks_enPhi2)
 				prevNmi <= nmi;
-			if (Clks[0])
+			if (Clks_enPhi2) begin
 				if (iplStable & ((nmi & ~prevNmi) | iplComp))
 					intPend <= 1'b1;
 				else if (((inl == 3'b111) & Iac) | ((iplStable & !nmi) & !iplComp))
 					intPend <= 1'b0;
+			end
 		end
-		if (Clks[3]) begin
-			inl <= -'sd1;
+		if (Clks_extReset) begin
+			inl <= 1'sb1;
 			updIll <= 1'b0;
 		end
 		else if (enT4)
@@ -409,87 +423,89 @@ module fx68k (
 	reg rVma;
 	assign VMAn = rVma;
 	wire xVma = ~rVma & (eCntr == 8);
-	always @(posedge Clks[4]) begin
-		if (Clks[2]) begin
+	always @(posedge Clks_clk) begin
+		if (Clks_pwrUp) begin
 			E <= 1'b0;
-			eCntr <= 'sd0;
+			eCntr <= 1'sb0;
 			rVma <= 1'b1;
 		end
-		if (Clks[0]) begin
+		if (Clks_enPhi2) begin
 			if (eCntr == 9)
 				E <= 1'b0;
 			else if (eCntr == 5)
 				E <= 1'b1;
 			if (eCntr == 9)
-				eCntr <= 'sd0;
+				eCntr <= 1'sb0;
 			else
 				eCntr <= eCntr + 1'b1;
 		end
-		if (((Clks[0] & addrOe) & ~Vpai) & (eCntr == 3))
+		if (((Clks_enPhi2 & addrOe) & ~Vpai) & (eCntr == 3))
 			rVma <= 1'b0;
-		else if (Clks[1] & (eCntr == 'sd0))
+		else if (Clks_enPhi1 & (eCntr == {4 {1'sb0}}))
 			rVma <= 1'b1;
 	end
-	always @(posedge Clks[4]) begin
-		if (Clks[3])
+	always @(posedge Clks_clk) begin
+		if (Clks_extReset)
 			rAddrErr <= 1'b0;
-		else if (Clks[1])
+		else if (Clks_enPhi1) begin
 			if (busAddrErr & addrOe)
 				rAddrErr <= 1'b1;
 			else if (~addrOe)
 				rAddrErr <= 1'b0;
-		if (Clks[3])
+		end
+		if (Clks_extReset)
 			iBusErr <= 1'b0;
-		else if (Clks[1])
+		else if (Clks_enPhi1)
 			iBusErr <= ((BerrA & ~BeI) & ~Iac) & !BusRetry;
-		if (Clks[3])
+		if (Clks_extReset)
 			BerrA <= 1'b0;
-		else if (Clks[0])
+		else if (Clks_enPhi2) begin
 			if ((~BeI & ~Iac) & addrOe)
 				BerrA <= 1'b1;
 			else if (BeI & busStarting)
 				BerrA <= 1'b0;
-		if (Clks[3])
+		end
+		if (Clks_extReset)
 			excRst <= 1'b1;
-		else if (enT2 & Nanod[104])
+		else if (enT2 & Nanod[55])
 			excRst <= 1'b0;
-		if (Clks[3])
+		if (Clks_extReset)
 			A0Err <= 1'b1;
 		else if (enT3)
 			A0Err <= 1'b0;
-		else if ((Clks[1] & enErrClk) & (busAddrErr | BerrA))
+		else if ((Clks_enPhi1 & enErrClk) & (busAddrErr | BerrA))
 			A0Err <= 1'b1;
-		if (Clks[3]) begin
+		if (Clks_extReset) begin
 			iStop <= 1'b0;
 			Err6591 <= 1'b0;
 		end
-		else if (Clks[1])
+		else if (Clks_enPhi1)
 			Err6591 <= enErrClk;
-		else if (Clks[0])
+		else if (Clks_enPhi2)
 			iStop <= xVma | (Vpai & (iAddrErr | ~rBerr));
 	end
 	reg irdToCcr_t4;
-	always @(posedge Clks[4])
-		if (Clks[2]) begin
+	always @(posedge Clks_clk)
+		if (Clks_pwrUp) begin
 			Tpend <= 1'b0;
-			{pswT, pswS, pswI} <= 'sd0;
-			irdToCcr_t4 <= 'sd0;
+			{pswT, pswS, pswI} <= 1'sb0;
+			irdToCcr_t4 <= 1'sb0;
 		end
 		else if (enT4)
 			irdToCcr_t4 <= Irdecod[38];
 		else if (enT3) begin
-			if (Nanod[97])
+			if (Nanod[49])
 				Tpend <= pswT;
-			else if (Nanod[96])
+			else if (Nanod[48])
 				Tpend <= 1'b0;
-			if (Nanod[88] & !irdToCcr_t4)
+			if (Nanod[40] & !irdToCcr_t4)
 				{pswT, pswS, pswI} <= {ftu[15], ftu[13], ftu[10:8]};
 			else begin
-				if (Nanod[82]) begin
+				if (Nanod[34]) begin
 					pswS <= 1'b1;
 					pswT <= 1'b0;
 				end
-				if (Nanod[89])
+				if (Nanod[41])
 					pswI <= inl;
 			end
 		end
@@ -497,62 +513,69 @@ module fx68k (
 	reg [3:0] tvnLatch;
 	reg [15:0] tvnMux;
 	reg inExcept01;
-	always @(posedge Clks[4]) begin
-		if (Nanod[61] & enT3)
+	always @(posedge Clks_clk) begin
+		if (Nanod[29] & enT3)
 			ssw <= {~bciWrite, inExcept01, rFC};
-		if (enT1 & Nanod[81]) begin
+		if (enT1 & Nanod[33]) begin
 			tvnLatch <= tvn;
 			inExcept01 <= tvn != 1;
 		end
-		if (Clks[2])
-			ftu <= 'sd0;
+		if (Clks_pwrUp)
+			ftu <= 1'sb0;
 		else if (enT3)
+			(* full_case, parallel_case *)
 			case (1'b1)
-				Nanod[95]: ftu <= tvnMux;
-				Nanod[87]: ftu <= {pswT, 1'b0, pswS, 2'b00, pswI, 3'b000, ccr[4:0]};
-				Nanod[84]: ftu <= Ird;
-				Nanod[83]: ftu[4:0] <= ssw;
-				Nanod[85]: ftu <= {12'hFFF, pswI, 1'b0};
-				Nanod[94]: ftu <= Irdecod[22-:16];
-				Nanod[91]: ftu <= Abl;
+				Nanod[47]: ftu <= tvnMux;
+				Nanod[39]: ftu <= {pswT, 1'b0, pswS, 2'b00, pswI, 3'b000, ccr[4:0]};
+				Nanod[36]: ftu <= Ird;
+				Nanod[35]: ftu[4:0] <= ssw;
+				Nanod[37]: ftu <= {12'hfff, pswI, 1'b0};
+				Nanod[46]: ftu <= Irdecod[22-:16];
+				Nanod[43]: ftu <= Abl;
 				default: ftu <= ftu;
 			endcase
 	end
 	localparam TVN_AUTOVEC = 13;
 	localparam TVN_INTERRUPT = 15;
 	localparam TVN_SPURIOUS = 12;
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if (inExcept01) begin
 			if (tvnLatch == TVN_SPURIOUS)
-				tvnMux = {9'b0, 5'd24, 2'b00};
+				tvnMux = 16'h0060;
 			else if (tvnLatch == TVN_AUTOVEC)
-				tvnMux = {9'b0, 2'b11, pswI, 2'b00};
+				tvnMux = {11'b00000000011, pswI, 2'b00};
 			else if (tvnLatch == TVN_INTERRUPT)
-				tvnMux = {6'b0, Ird[7:0], 2'b00};
+				tvnMux = {6'b000000, Ird[7:0], 2'b00};
 			else
-				tvnMux = {10'b0, tvnLatch, 2'b00};
+				tvnMux = {10'b0000000000, tvnLatch, 2'b00};
 		end
 		else
-			tvnMux = {8'h0, Irdecod[6-:6], 2'b00};
+			tvnMux = {8'h00, Irdecod[6-:6], 2'b00};
+	end
+	initial _sv2v_0 = 0;
 endmodule
 module nDecoder3 (
-	Clks,
+	Clks_clk,
 	Irdecod,
 	Nanod,
+	Nanod2,
 	enT2,
 	enT4,
 	microLatch,
 	nanoLatch
 );
-	input wire [4:0] Clks;
+	input Clks_clk;
 	input wire [41:0] Irdecod;
-	output reg [104:0] Nanod;
+	output wire [55:0] Nanod;
+	output reg [48:0] Nanod2;
 	input enT2;
 	input enT4;
 	localparam UROM_WIDTH = 17;
-	input [UROM_WIDTH - 1:0] microLatch;
+	input [16:0] microLatch;
 	localparam NANO_WIDTH = 68;
-	input [NANO_WIDTH - 1:0] nanoLatch;
+	input [67:0] nanoLatch;
 	localparam NANO_IR2IRD = 67;
 	localparam NANO_TOIRC = 66;
 	localparam NANO_ALU_COL = 63;
@@ -621,137 +644,138 @@ module nDecoder3 (
 	reg [3:0] ftuCtrl;
 	wire [2:0] athCtrl;
 	wire [2:0] atlCtrl;
-	assign athCtrl = nanoLatch[NANO_ATHCTRL + 2:NANO_ATHCTRL];
-	assign atlCtrl = nanoLatch[NANO_ATLCTRL + 2:NANO_ATLCTRL];
-	wire [1:0] aobCtrl = nanoLatch[NANO_AOBCTRL + 1:NANO_AOBCTRL];
+	assign athCtrl = nanoLatch[11:NANO_ATHCTRL];
+	assign atlCtrl = nanoLatch[31:NANO_ATLCTRL];
+	wire [1:0] aobCtrl = nanoLatch[4:NANO_AOBCTRL];
 	wire [1:0] dobCtrl = {nanoLatch[NANO_DOBCTRL_1], nanoLatch[NANO_DOBCTRL_0]};
-	always @(posedge Clks[4])
+	always @(posedge Clks_clk)
 		if (enT4) begin
-			ftuCtrl <= {nanoLatch[NANO_FTUCONTROL], nanoLatch[NANO_FTUCONTROL + 1], nanoLatch[NANO_FTUCONTROL + 2], nanoLatch[NANO_FTUCONTROL + 3]};
-			Nanod[80] <= !nanoLatch[NANO_AUCLKEN];
-			Nanod[78-:3] <= nanoLatch[NANO_AUCTRL + 2:NANO_AUCTRL];
-			Nanod[79] <= nanoLatch[NANO_NO_SP_ALGN + 1:NANO_NO_SP_ALGN] == 2'b11;
-			Nanod[6] <= nanoLatch[NANO_EXT_DBH];
-			Nanod[5] <= nanoLatch[NANO_EXT_ABH];
-			Nanod[75] <= nanoLatch[NANO_TODBIN];
-			Nanod[74] <= nanoLatch[NANO_TOIRC];
-			Nanod[4] <= nanoLatch[NANO_ABLABD];
-			Nanod[3] <= nanoLatch[NANO_ABLABH];
-			Nanod[2] <= nanoLatch[NANO_DBLDBD];
-			Nanod[1] <= nanoLatch[NANO_DBLDBH];
-			Nanod[73] <= atlCtrl == 3'b010;
-			Nanod[70] <= atlCtrl == 3'b011;
-			Nanod[72] <= atlCtrl == 3'b100;
-			Nanod[71] <= atlCtrl == 3'b101;
-			Nanod[62] <= athCtrl == 3'b101;
-			Nanod[69] <= (athCtrl == 3'b001) | (athCtrl == 3'b101);
-			Nanod[68] <= athCtrl == 3'b100;
-			Nanod[67] <= athCtrl == 3'b110;
-			Nanod[66] <= athCtrl == 3'b011;
-			Nanod[13] <= nanoLatch[NANO_ALU2DBD];
-			Nanod[12] <= nanoLatch[NANO_ALU2ABD];
-			Nanod[19] <= nanoLatch[NANO_DCR + 1:NANO_DCR] == 2'b11;
-			Nanod[18] <= nanoLatch[NANO_DCR + 2:NANO_DCR + 1] == 2'b11;
-			Nanod[17] <= nanoLatch[NANO_ALUE + 2:NANO_ALUE + 1] == 2'b10;
-			Nanod[16] <= nanoLatch[NANO_ALUE + 1:NANO_ALUE] == 2'b01;
-			Nanod[15] <= nanoLatch[NANO_DBD2ALUB];
-			Nanod[14] <= nanoLatch[NANO_ABD2ALUB];
-			Nanod[60-:2] <= dobCtrl;
+			ftuCtrl <= {nanoLatch[25], nanoLatch[26], nanoLatch[27], nanoLatch[28]};
+			Nanod2[48] <= !nanoLatch[NANO_AUCLKEN];
+			Nanod2[46-:3] <= nanoLatch[18:16];
+			Nanod2[47] <= nanoLatch[1:NANO_NO_SP_ALGN] == 2'b11;
+			Nanod2[43] <= nanoLatch[NANO_EXT_DBH];
+			Nanod2[42] <= nanoLatch[NANO_EXT_ABH];
+			Nanod2[41] <= nanoLatch[NANO_TODBIN];
+			Nanod2[40] <= nanoLatch[NANO_TOIRC];
+			Nanod2[39] <= nanoLatch[NANO_ABLABD];
+			Nanod2[38] <= nanoLatch[NANO_ABLABH];
+			Nanod2[37] <= nanoLatch[NANO_DBLDBD];
+			Nanod2[36] <= nanoLatch[NANO_DBLDBH];
+			Nanod2[35] <= atlCtrl == 3'b010;
+			Nanod2[32] <= atlCtrl == 3'b011;
+			Nanod2[34] <= atlCtrl == 3'b100;
+			Nanod2[33] <= atlCtrl == 3'b101;
+			Nanod2[27] <= athCtrl == 3'b101;
+			Nanod2[31] <= (athCtrl == 3'b001) | (athCtrl == 3'b101);
+			Nanod2[30] <= athCtrl == 3'b100;
+			Nanod2[29] <= athCtrl == 3'b110;
+			Nanod2[28] <= athCtrl == 3'b011;
+			Nanod2[26] <= nanoLatch[NANO_ALU2DBD];
+			Nanod2[25] <= nanoLatch[NANO_ALU2ABD];
+			Nanod2[24] <= nanoLatch[58:NANO_DCR] == 2'b11;
+			Nanod2[23] <= nanoLatch[59:58] == 2'b11;
+			Nanod2[22] <= nanoLatch[59:58] == 2'b10;
+			Nanod2[21] <= nanoLatch[58:NANO_ALUE] == 2'b01;
+			Nanod2[20] <= nanoLatch[NANO_DBD2ALUB];
+			Nanod2[19] <= nanoLatch[NANO_ABD2ALUB];
+			Nanod2[18-:2] <= dobCtrl;
 		end
-	always @(*) Nanod[61] = Nanod[62];
-	always @(*) Nanod[97] = ftuCtrl == NANO_FTU_UPDTPEND;
-	always @(*) Nanod[96] = ftuCtrl == NANO_FTU_CLRTPEND;
-	always @(*) Nanod[95] = ftuCtrl == NANO_FTU_TVN;
-	always @(*) Nanod[94] = ftuCtrl == NANO_FTU_CONST;
-	always @(*) Nanod[93] = (ftuCtrl == NANO_FTU_DBL) | (ftuCtrl == NANO_FTU_INL);
-	always @(*) Nanod[92] = ftuCtrl == NANO_FTU_2ABL;
-	always @(*) Nanod[89] = ftuCtrl == NANO_FTU_INL;
-	always @(*) Nanod[85] = ftuCtrl == NANO_FTU_PSWI;
-	always @(*) Nanod[88] = ftuCtrl == NANO_FTU_2SR;
-	always @(*) Nanod[87] = ftuCtrl == NANO_FTU_RDSR;
-	always @(*) Nanod[84] = ftuCtrl == NANO_FTU_IRD;
-	always @(*) Nanod[83] = ftuCtrl == NANO_FTU_SSW;
-	always @(*) Nanod[82] = ((ftuCtrl == NANO_FTU_INL) | (ftuCtrl == NANO_FTU_CLRTPEND)) | (ftuCtrl == NANO_FTU_INIT_ST);
-	always @(*) Nanod[91] = ftuCtrl == NANO_FTU_ABL2PREN;
-	always @(*) Nanod[90] = ftuCtrl == NANO_FTU_RSTPREN;
-	always @(*) Nanod[81] = nanoLatch[NANO_IR2IRD];
-	always @(*) Nanod[24-:2] = nanoLatch[NANO_ALU_DCTRL + 1:NANO_ALU_DCTRL];
-	always @(*) Nanod[22] = nanoLatch[NANO_ALU_ACTRL];
-	always @(*) Nanod[27-:3] = {nanoLatch[NANO_ALU_COL], nanoLatch[NANO_ALU_COL + 1], nanoLatch[NANO_ALU_COL + 2]};
-	wire [1:0] aluFinInit = nanoLatch[NANO_ALU_FI + 1:NANO_ALU_FI];
-	always @(*) Nanod[20] = aluFinInit == 2'b10;
-	always @(*) Nanod[21] = aluFinInit == 2'b01;
-	always @(*) Nanod[86] = aluFinInit == 2'b11;
-	always @(*) Nanod[0] = nanoLatch[NANO_ABDHRECHARGE];
-	always @(*) Nanod[11] = nanoLatch[NANO_AUOUT + 1:NANO_AUOUT] == 2'b01;
-	always @(*) Nanod[10] = nanoLatch[NANO_AUOUT + 1:NANO_AUOUT] == 2'b10;
-	always @(*) Nanod[9] = nanoLatch[NANO_AUOUT + 1:NANO_AUOUT] == 2'b11;
-	always @(*) Nanod[65] = aobCtrl == 2'b10;
-	always @(*) Nanod[64] = aobCtrl == 2'b01;
-	always @(*) Nanod[63] = aobCtrl == 2'b11;
-	always @(*) Nanod[8] = nanoLatch[NANO_DBIN2ABD];
-	always @(*) Nanod[7] = nanoLatch[NANO_DBIN2DBD];
-	always @(*) Nanod[104] = |aobCtrl;
-	always @(*) Nanod[102] = |dobCtrl;
-	always @(*) Nanod[103] = (nanoLatch[NANO_TOIRC] | nanoLatch[NANO_TODBIN]) | Nanod[102];
-	always @(*) Nanod[101] = nanoLatch[NANO_BUSBYTE];
-	always @(*) Nanod[99] = nanoLatch[NANO_LOWBYTE];
-	always @(*) Nanod[98] = nanoLatch[NANO_HIGHBYTE];
-	always @(*) Nanod[57] = nanoLatch[NANO_ABL2REG];
-	always @(*) Nanod[58] = nanoLatch[NANO_ABH2REG];
-	always @(*) Nanod[53] = nanoLatch[NANO_DBL2REG];
-	always @(*) Nanod[54] = nanoLatch[NANO_DBH2REG];
-	always @(*) Nanod[52] = nanoLatch[NANO_REG2DBL];
-	always @(*) Nanod[51] = nanoLatch[NANO_REG2DBH];
-	always @(*) Nanod[56] = nanoLatch[NANO_REG2ABL];
-	always @(*) Nanod[55] = nanoLatch[NANO_REG2ABH];
-	always @(*) Nanod[50] = nanoLatch[NANO_SSP];
-	always @(*) Nanod[29] = nanoLatch[NANO_RZ];
+	assign Nanod[29] = Nanod2[27];
+	assign Nanod[49] = ftuCtrl == NANO_FTU_UPDTPEND;
+	assign Nanod[48] = ftuCtrl == NANO_FTU_CLRTPEND;
+	assign Nanod[47] = ftuCtrl == NANO_FTU_TVN;
+	assign Nanod[46] = ftuCtrl == NANO_FTU_CONST;
+	assign Nanod[45] = (ftuCtrl == NANO_FTU_DBL) | (ftuCtrl == NANO_FTU_INL);
+	assign Nanod[44] = ftuCtrl == NANO_FTU_2ABL;
+	assign Nanod[41] = ftuCtrl == NANO_FTU_INL;
+	assign Nanod[37] = ftuCtrl == NANO_FTU_PSWI;
+	assign Nanod[40] = ftuCtrl == NANO_FTU_2SR;
+	assign Nanod[39] = ftuCtrl == NANO_FTU_RDSR;
+	assign Nanod[36] = ftuCtrl == NANO_FTU_IRD;
+	assign Nanod[35] = ftuCtrl == NANO_FTU_SSW;
+	assign Nanod[34] = ((ftuCtrl == NANO_FTU_INL) | (ftuCtrl == NANO_FTU_CLRTPEND)) | (ftuCtrl == NANO_FTU_INIT_ST);
+	assign Nanod[43] = ftuCtrl == NANO_FTU_ABL2PREN;
+	assign Nanod[42] = ftuCtrl == NANO_FTU_RSTPREN;
+	assign Nanod[33] = nanoLatch[NANO_IR2IRD];
+	assign Nanod[10-:2] = nanoLatch[52:NANO_ALU_DCTRL];
+	assign Nanod[8] = nanoLatch[NANO_ALU_ACTRL];
+	assign Nanod[13-:3] = {nanoLatch[NANO_ALU_COL], nanoLatch[64], nanoLatch[65]};
+	wire [1:0] aluFinInit = nanoLatch[62:NANO_ALU_FI];
+	assign Nanod[6] = aluFinInit == 2'b10;
+	assign Nanod[7] = aluFinInit == 2'b01;
+	assign Nanod[38] = aluFinInit == 2'b11;
+	assign Nanod[0] = nanoLatch[NANO_ABDHRECHARGE];
+	assign Nanod[5] = nanoLatch[21:NANO_AUOUT] == 2'b01;
+	assign Nanod[4] = nanoLatch[21:NANO_AUOUT] == 2'b10;
+	assign Nanod[3] = nanoLatch[21:NANO_AUOUT] == 2'b11;
+	assign Nanod[32] = aobCtrl == 2'b10;
+	assign Nanod[31] = aobCtrl == 2'b01;
+	assign Nanod[30] = aobCtrl == 2'b11;
+	assign Nanod[2] = nanoLatch[NANO_DBIN2ABD];
+	assign Nanod[1] = nanoLatch[NANO_DBIN2DBD];
+	assign Nanod[55] = |aobCtrl;
+	assign Nanod[53] = |dobCtrl;
+	assign Nanod[54] = (nanoLatch[NANO_TOIRC] | nanoLatch[NANO_TODBIN]) | Nanod[53];
+	assign Nanod[52] = nanoLatch[NANO_BUSBYTE];
+	assign Nanod[51] = nanoLatch[NANO_LOWBYTE];
+	assign Nanod[50] = nanoLatch[NANO_HIGHBYTE];
+	assign Nanod[27] = nanoLatch[NANO_ABL2REG];
+	assign Nanod[28] = nanoLatch[NANO_ABH2REG];
+	assign Nanod[23] = nanoLatch[NANO_DBL2REG];
+	assign Nanod[24] = nanoLatch[NANO_DBH2REG];
+	assign Nanod[22] = nanoLatch[NANO_REG2DBL];
+	assign Nanod[21] = nanoLatch[NANO_REG2DBH];
+	assign Nanod[26] = nanoLatch[NANO_REG2ABL];
+	assign Nanod[25] = nanoLatch[NANO_REG2ABH];
+	assign Nanod[20] = nanoLatch[NANO_SSP];
+	assign Nanod[15] = nanoLatch[NANO_RZ];
 	wire dtldbd = 1'b0;
 	wire dthdbh = 1'b0;
 	wire dtlabd = 1'b0;
 	wire dthabh = 1'b0;
-	wire dblSpecial = Nanod[48] | dtldbd;
-	wire dbhSpecial = Nanod[49] | dthdbh;
-	wire ablSpecial = Nanod[47] | dtlabd;
-	wire abhSpecial = Nanod[46] | dthabh;
-	always @(*) Nanod[28] = nanoLatch[NANO_RXL_DBL];
-	wire isPcRel = Irdecod[41] & !Nanod[29];
+	wire dblSpecial = Nanod[18] | dtldbd;
+	wire dbhSpecial = Nanod[19] | dthdbh;
+	wire ablSpecial = Nanod[17] | dtlabd;
+	wire abhSpecial = Nanod[16] | dthabh;
+	assign Nanod[14] = nanoLatch[NANO_RXL_DBL];
+	wire isPcRel = Irdecod[41] & !Nanod[15];
 	wire pcRelDbl = isPcRel & !nanoLatch[NANO_RXL_DBL];
 	wire pcRelDbh = isPcRel & !nanoLatch[NANO_RXH_DBH];
 	wire pcRelAbl = isPcRel & nanoLatch[NANO_RXL_DBL];
 	wire pcRelAbh = isPcRel & nanoLatch[NANO_RXH_DBH];
-	always @(*) Nanod[48] = nanoLatch[NANO_PCLDBL] | pcRelDbl;
-	always @(*) Nanod[49] = (nanoLatch[NANO_PCH + 1:NANO_PCH] == 2'b01) | pcRelDbh;
-	always @(*) Nanod[47] = nanoLatch[NANO_PCLABL] | pcRelAbl;
-	always @(*) Nanod[46] = (nanoLatch[NANO_PCH + 1:NANO_PCH] == 2'b10) | pcRelAbh;
-	always @(posedge Clks[4]) begin
+	assign Nanod[18] = nanoLatch[NANO_PCLDBL] | pcRelDbl;
+	assign Nanod[19] = (nanoLatch[1:NANO_PCH] == 2'b01) | pcRelDbh;
+	assign Nanod[17] = nanoLatch[NANO_PCLABL] | pcRelAbl;
+	assign Nanod[16] = (nanoLatch[1:NANO_PCH] == 2'b10) | pcRelAbh;
+	always @(posedge Clks_clk) begin
 		if (enT4) begin
-			Nanod[41] <= (Nanod[52] & !dblSpecial) & nanoLatch[NANO_RXL_DBL];
-			Nanod[40] <= (Nanod[56] & !ablSpecial) & !nanoLatch[NANO_RXL_DBL];
-			Nanod[43] <= (Nanod[53] & !dblSpecial) & nanoLatch[NANO_RXL_DBL];
-			Nanod[39] <= (Nanod[57] & !ablSpecial) & !nanoLatch[NANO_RXL_DBL];
-			Nanod[45] <= (Nanod[51] & !dbhSpecial) & nanoLatch[NANO_RXH_DBH];
-			Nanod[44] <= (Nanod[55] & !abhSpecial) & !nanoLatch[NANO_RXH_DBH];
-			Nanod[42] <= (Nanod[54] & !dbhSpecial) & nanoLatch[NANO_RXH_DBH];
-			Nanod[38] <= (Nanod[58] & !abhSpecial) & !nanoLatch[NANO_RXH_DBH];
-			Nanod[37] <= (Nanod[54] & !dbhSpecial) & !nanoLatch[NANO_RXH_DBH];
-			Nanod[36] <= (Nanod[58] & !abhSpecial) & nanoLatch[NANO_RXH_DBH];
-			Nanod[31] <= (Nanod[53] & !dblSpecial) & !nanoLatch[NANO_RXL_DBL];
-			Nanod[30] <= (Nanod[57] & !ablSpecial) & nanoLatch[NANO_RXL_DBL];
-			Nanod[35] <= (Nanod[52] & !dblSpecial) & !nanoLatch[NANO_RXL_DBL];
-			Nanod[34] <= (Nanod[56] & !ablSpecial) & nanoLatch[NANO_RXL_DBL];
-			Nanod[33] <= (Nanod[51] & !dbhSpecial) & !nanoLatch[NANO_RXH_DBH];
-			Nanod[32] <= (Nanod[55] & !abhSpecial) & nanoLatch[NANO_RXH_DBH];
+			Nanod2[16] <= (Nanod[22] & !dblSpecial) & nanoLatch[NANO_RXL_DBL];
+			Nanod2[15] <= (Nanod[26] & !ablSpecial) & !nanoLatch[NANO_RXL_DBL];
+			Nanod2[12] <= (Nanod[23] & !dblSpecial) & nanoLatch[NANO_RXL_DBL];
+			Nanod2[14] <= (Nanod[27] & !ablSpecial) & !nanoLatch[NANO_RXL_DBL];
+			Nanod2[10] <= (Nanod[21] & !dbhSpecial) & nanoLatch[NANO_RXH_DBH];
+			Nanod2[9] <= (Nanod[25] & !abhSpecial) & !nanoLatch[NANO_RXH_DBH];
+			Nanod2[11] <= (Nanod[24] & !dbhSpecial) & nanoLatch[NANO_RXH_DBH];
+			Nanod2[13] <= (Nanod[28] & !abhSpecial) & !nanoLatch[NANO_RXH_DBH];
+			Nanod2[8] <= (Nanod[24] & !dbhSpecial) & !nanoLatch[NANO_RXH_DBH];
+			Nanod2[7] <= (Nanod[28] & !abhSpecial) & nanoLatch[NANO_RXH_DBH];
+			Nanod2[6] <= (Nanod[23] & !dblSpecial) & !nanoLatch[NANO_RXL_DBL];
+			Nanod2[5] <= (Nanod[27] & !ablSpecial) & nanoLatch[NANO_RXL_DBL];
+			Nanod2[4] <= (Nanod[22] & !dblSpecial) & !nanoLatch[NANO_RXL_DBL];
+			Nanod2[3] <= (Nanod[26] & !ablSpecial) & nanoLatch[NANO_RXL_DBL];
+			Nanod2[2] <= (Nanod[21] & !dbhSpecial) & !nanoLatch[NANO_RXH_DBH];
+			Nanod2[1] <= (Nanod[25] & !abhSpecial) & nanoLatch[NANO_RXH_DBH];
 		end
 		if (enT4)
-			Nanod[100] <= Irdecod[40] & nanoLatch[NANO_BUSBYTE];
+			Nanod2[0] <= Irdecod[40] & nanoLatch[NANO_BUSBYTE];
 	end
 endmodule
 module irdDecode (
 	ird,
 	Irdecod
 );
+	reg _sv2v_0;
 	input [15:0] ird;
 	output reg [41:0] Irdecod;
 	wire [3:0] line = ird[15:12];
@@ -762,13 +786,24 @@ module irdDecode (
 	);
 	wire isRegShift = lineOnehot['he] & (ird[7:6] != 2'b11);
 	wire isDynShift = isRegShift & ird[5];
-	always @(*) Irdecod[41] = ((&ird[5:3] & ~isDynShift) & !ird[2]) & ird[1];
-	always @(*) Irdecod[40] = lineOnehot[4] & (ird[11:6] == 6'b101011);
-	always @(*) Irdecod[30-:3] = ird[11:9];
-	always @(*) Irdecod[27-:3] = ird[2:0];
+	wire [1:1] sv2v_tmp_9D785;
+	assign sv2v_tmp_9D785 = ((&ird[5:3] & ~isDynShift) & !ird[2]) & ird[1];
+	always @(*) Irdecod[41] = sv2v_tmp_9D785;
+	wire [1:1] sv2v_tmp_1BD44;
+	assign sv2v_tmp_1BD44 = lineOnehot[4] & (ird[11:6] == 6'b101011);
+	always @(*) Irdecod[40] = sv2v_tmp_1BD44;
+	wire [3:1] sv2v_tmp_C005B;
+	assign sv2v_tmp_C005B = ird[11:9];
+	always @(*) Irdecod[30-:3] = sv2v_tmp_C005B;
+	wire [3:1] sv2v_tmp_603B5;
+	assign sv2v_tmp_603B5 = ird[2:0];
+	always @(*) Irdecod[27-:3] = sv2v_tmp_603B5;
 	wire isPreDecr = ird[5:3] == 3'b100;
 	wire eaAreg = ird[5:3] == 3'b001;
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (1'b1)
 			lineOnehot[1], lineOnehot[2], lineOnehot[3]: Irdecod[24] = |ird[8:6];
 			lineOnehot[4]: Irdecod[24] = &ird[8:6];
@@ -777,15 +812,31 @@ module irdDecode (
 			lineOnehot['h9], lineOnehot['hb], lineOnehot['hd]: Irdecod[24] = (ird[7] & ird[6]) | ((eaAreg & ird[8]) & (ird[7:6] != 2'b11));
 			default: Irdecod[24] = Irdecod[39];
 		endcase
-	always @(*) Irdecod[34] = (lineOnehot[4] & ~ird[8]) & ~Irdecod[39];
-	always @(*) Irdecod[33] = Irdecod[34] & isPreDecr;
-	always @(*) Irdecod[37] = lineOnehot[5] | (lineOnehot[0] & ~ird[8]);
-	always @(*) Irdecod[35] = lineOnehot[4] & (ird[11:4] == 8'he6);
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		Irdecod[34] = (lineOnehot[4] & ~ird[8]) & ~Irdecod[39];
+	end
+	wire [1:1] sv2v_tmp_2D301;
+	assign sv2v_tmp_2D301 = Irdecod[34] & isPreDecr;
+	always @(*) Irdecod[33] = sv2v_tmp_2D301;
+	wire [1:1] sv2v_tmp_40C9E;
+	assign sv2v_tmp_40C9E = lineOnehot[5] | (lineOnehot[0] & ~ird[8]);
+	always @(*) Irdecod[37] = sv2v_tmp_40C9E;
+	wire [1:1] sv2v_tmp_26777;
+	assign sv2v_tmp_26777 = lineOnehot[4] & (ird[11:4] == 8'he6);
+	always @(*) Irdecod[35] = sv2v_tmp_26777;
 	wire eaImmOrAbs = (ird[5:3] == 3'b111) & ~ird[1];
-	always @(*) Irdecod[36] = eaImmOrAbs & ~isRegShift;
+	wire [1:1] sv2v_tmp_E109D;
+	assign sv2v_tmp_E109D = eaImmOrAbs & ~isRegShift;
+	always @(*) Irdecod[36] = sv2v_tmp_E109D;
 	always @(*) begin : sv2v_autoblock_1
 		reg eaIsAreg;
+		if (_sv2v_0)
+			;
 		eaIsAreg = (ird[5:3] != 3'b000) & (ird[5:3] != 3'b111);
+		(* full_case, parallel_case *)
 		case (1'b1)
 			default: Irdecod[23] = eaIsAreg;
 			lineOnehot[5]: Irdecod[23] = eaIsAreg & (ird[7:3] != 5'b11001);
@@ -795,7 +846,10 @@ module irdDecode (
 	end
 	wire xIsScc = (ird[7:6] == 2'b11) & (ird[5:3] != 3'b001);
 	wire xStaticMem = (ird[11:8] == 4'b1000) & (ird[5:4] == 2'b00);
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (1'b1)
 			lineOnehot[0]: Irdecod[32] = (((ird[8] & (ird[5:4] != 2'b00)) | ((ird[11:8] == 4'b1000) & (ird[5:4] != 2'b00))) | ((ird[8:7] == 2'b10) & (ird[5:3] == 3'b001))) | ((ird[8:6] == 3'b000) & !xStaticMem);
 			lineOnehot[1]: Irdecod[32] = 1'b1;
@@ -804,26 +858,43 @@ module irdDecode (
 			lineOnehot[8], lineOnehot[9], lineOnehot['hb], lineOnehot['hc], lineOnehot['hd], lineOnehot['he]: Irdecod[32] = ird[7:6] == 2'b00;
 			default: Irdecod[32] = 1'b0;
 		endcase
-	always @(*) Irdecod[31] = (lineOnehot[0] & ird[8]) & eaAreg;
-	always @(*)
+	end
+	wire [1:1] sv2v_tmp_4419B;
+	assign sv2v_tmp_4419B = (lineOnehot[0] & ird[8]) & eaAreg;
+	always @(*) Irdecod[31] = sv2v_tmp_4419B;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (1'b1)
 			lineOnehot[6]: Irdecod[39] = ird[11:8] == 4'b0001;
-			lineOnehot[4]: Irdecod[39] = (ird[11:8] == 4'b1110) | (ird[11:6] == 6'b1000_01);
+			lineOnehot[4]: Irdecod[39] = (ird[11:8] == 4'b1110) | (ird[11:6] == 6'b100001);
 			default: Irdecod[39] = 1'b0;
 		endcase
-	always @(*) Irdecod[38] = (lineOnehot[4] & ((ird[11:0] == 12'he77) | (ird[11:6] == 6'b010011))) | (lineOnehot[0] & (ird[8:6] == 3'b000));
+	end
+	wire [1:1] sv2v_tmp_03DA9;
+	assign sv2v_tmp_03DA9 = (lineOnehot[4] & ((ird[11:0] == 12'he77) | (ird[11:6] == 6'b010011))) | (lineOnehot[0] & (ird[8:6] == 3'b000));
+	always @(*) Irdecod[38] = sv2v_tmp_03DA9;
 	reg [15:0] ftuConst;
 	wire [3:0] zero28 = (ird[11:9] == 0 ? 4'h8 : {1'b0, ird[11:9]});
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (1'b1)
 			lineOnehot[6], lineOnehot[7]: ftuConst = {{8 {ird[7]}}, ird[7:0]};
-			lineOnehot['h5], lineOnehot['he]: ftuConst = {12'b0, zero28};
-			lineOnehot['h8], lineOnehot['hc]: ftuConst = 16'h0f;
-			lineOnehot[4]: ftuConst = 16'h80;
-			default: ftuConst = 'sd0;
+			lineOnehot['h5], lineOnehot['he]: ftuConst = {12'b000000000000, zero28};
+			lineOnehot['h8], lineOnehot['hc]: ftuConst = 16'h000f;
+			lineOnehot[4]: ftuConst = 16'h0080;
+			default: ftuConst = 1'sb0;
 		endcase
-	always @(*) Irdecod[22-:16] = ftuConst;
-	always @(*)
+	end
+	wire [16:1] sv2v_tmp_D48F4;
+	assign sv2v_tmp_D48F4 = ftuConst;
+	always @(*) Irdecod[22-:16] = sv2v_tmp_D48F4;
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if (lineOnehot[4])
 			case (ird[6:5])
 				2'b00, 2'b01: Irdecod[6-:6] = 6;
@@ -832,17 +903,25 @@ module irdDecode (
 			endcase
 		else
 			Irdecod[6-:6] = 5;
+	end
 	wire eaAdir = ird[5:3] == 3'b001;
 	wire size11 = ird[7] & ird[6];
-	always @(*) Irdecod[0] = (((lineOnehot[9] | lineOnehot['hd]) & size11) | (lineOnehot[5] & eaAdir)) | ((lineOnehot[2] | lineOnehot[3]) & (ird[8:6] == 3'b001));
+	wire [1:1] sv2v_tmp_04E16;
+	assign sv2v_tmp_04E16 = (((lineOnehot[9] | lineOnehot['hd]) & size11) | (lineOnehot[5] & eaAdir)) | ((lineOnehot[2] | lineOnehot[3]) & (ird[8:6] == 3'b001));
+	always @(*) Irdecod[0] = sv2v_tmp_04E16;
+	initial _sv2v_0 = 0;
 endmodule
 module excUnit (
-	Clks,
+	Clks_clk,
+	Clks_extReset,
+	Clks_pwrUp,
+	Clks_enPhi2,
 	enT1,
 	enT2,
 	enT3,
 	enT4,
 	Nanod,
+	Nanod2,
 	Irdecod,
 	Ird,
 	pswS,
@@ -860,25 +939,30 @@ module excUnit (
 	oEdb,
 	eab
 );
-	input wire [4:0] Clks;
+	reg _sv2v_0;
+	input Clks_clk;
+	input Clks_extReset;
+	input Clks_pwrUp;
+	input Clks_enPhi2;
 	input enT1;
 	input enT2;
 	input enT3;
 	input enT4;
-	input wire [104:0] Nanod;
+	input wire [55:0] Nanod;
+	input wire [48:0] Nanod2;
 	input wire [41:0] Irdecod;
 	input [15:0] Ird;
 	input pswS;
 	input [15:0] ftu;
 	input [15:0] iEdb;
 	output wire [7:0] ccr;
-	output [15:0] alue;
-	output prenEmpty;
-	output au05z;
+	output wire [15:0] alue;
+	output wire prenEmpty;
+	output wire au05z;
 	output reg dcr4;
 	output wire ze;
 	output wire aob0;
-	output [15:0] AblOut;
+	output wire [15:0] AblOut;
 	output wire [15:0] Irc;
 	output wire [15:0] oEdb;
 	output wire [23:1] eab;
@@ -887,12 +971,12 @@ module excUnit (
 	localparam REG_DT = 17;
 	reg [15:0] regs68L [0:17];
 	reg [15:0] regs68H [0:17];
-	initial begin : sv2v_autoblock_2
+	initial begin : sv2v_autoblock_1
 		reg signed [31:0] i;
 		for (i = 0; i < 18; i = i + 1)
 			begin
-				regs68L[i] <= 'sd0;
-				regs68H[i] <= 'sd0;
+				regs68L[i] = 1'sb0;
+				regs68H[i] = 1'sb0;
 			end
 	end
 	wire [31:0] SSP = {regs68H[REG_SSP], regs68L[REG_SSP]};
@@ -937,20 +1021,22 @@ module excUnit (
 	reg rxIsAreg;
 	reg ryIsAreg;
 	always @(*) begin
-		if (Nanod[50]) begin
+		if (_sv2v_0)
+			;
+		if (Nanod[20]) begin
 			rxMux = REG_SSP;
 			rxIsSp = 1'b1;
-			rxReg = 1'bX;
+			rxReg = 1'bx;
 		end
 		else if (Irdecod[35]) begin
 			rxMux = REG_USP;
 			rxIsSp = 1'b1;
-			rxReg = 1'bX;
+			rxReg = 1'bx;
 		end
 		else if (Irdecod[37] & !Irdecod[39]) begin
 			rxMux = REG_DT;
 			rxIsSp = 1'b0;
-			rxReg = 1'bX;
+			rxReg = 1'bx;
 		end
 		else begin
 			if (Irdecod[39])
@@ -968,13 +1054,13 @@ module excUnit (
 				rxIsSp = 1'b0;
 			end
 		end
-		if (Irdecod[36] & !Nanod[29]) begin
+		if (Irdecod[36] & !Nanod[15]) begin
 			ryMux = REG_DT;
 			ryIsSp = 1'b0;
-			ryReg = 'sdX;
+			ryReg = 1'sbx;
 		end
 		else begin
-			ryReg = (Nanod[29] ? Irc[15:12] : {Irdecod[23], Irdecod[27-:3]});
+			ryReg = (Nanod[15] ? Irc[15:12] : {Irdecod[23], Irdecod[27-:3]});
 			ryIsSp = &ryReg;
 			if (ryIsSp & pswS)
 				ryMux = REG_SSP;
@@ -982,9 +1068,9 @@ module excUnit (
 				ryMux = {1'b0, ryReg};
 		end
 	end
-	always @(posedge Clks[4]) begin
+	always @(posedge Clks_clk) begin
 		if (enT4) begin
-			byteNotSpAlign <= Irdecod[32] & ~(Nanod[28] ? rxIsSp : ryIsSp);
+			byteNotSpAlign <= Irdecod[32] & ~(Nanod[14] ? rxIsSp : ryIsSp);
 			actualRx <= rxMux;
 			actualRy <= ryMux;
 			rxIsAreg <= rxIsSp | rxMux[3];
@@ -993,14 +1079,14 @@ module excUnit (
 		if (enT4)
 			abdIsByte <= Nanod[0] & Irdecod[32];
 	end
-	wire ryl2Abl = Nanod[34] & (ryIsAreg | Nanod[4]);
-	wire ryl2Abd = Nanod[34] & (~ryIsAreg | Nanod[4]);
-	wire ryl2Dbl = Nanod[35] & (ryIsAreg | Nanod[2]);
-	wire ryl2Dbd = Nanod[35] & (~ryIsAreg | Nanod[2]);
-	wire rxl2Abl = Nanod[40] & (rxIsAreg | Nanod[4]);
-	wire rxl2Abd = Nanod[40] & (~rxIsAreg | Nanod[4]);
-	wire rxl2Dbl = Nanod[41] & (rxIsAreg | Nanod[2]);
-	wire rxl2Dbd = Nanod[41] & (~rxIsAreg | Nanod[2]);
+	wire ryl2Abl = Nanod2[3] & (ryIsAreg | Nanod2[39]);
+	wire ryl2Abd = Nanod2[3] & (~ryIsAreg | Nanod2[39]);
+	wire ryl2Dbl = Nanod2[4] & (ryIsAreg | Nanod2[37]);
+	wire ryl2Dbd = Nanod2[4] & (~ryIsAreg | Nanod2[37]);
+	wire rxl2Abl = Nanod2[15] & (rxIsAreg | Nanod2[39]);
+	wire rxl2Abd = Nanod2[15] & (~rxIsAreg | Nanod2[39]);
+	wire rxl2Dbl = Nanod2[16] & (rxIsAreg | Nanod2[37]);
+	wire rxl2Dbd = Nanod2[16] & (~rxIsAreg | Nanod2[37]);
 	reg abhIdle;
 	reg ablIdle;
 	reg abdIdle;
@@ -1008,75 +1094,83 @@ module excUnit (
 	reg dblIdle;
 	reg dbdIdle;
 	always @(*) begin
-		{abhIdle, ablIdle, abdIdle} = 'sd0;
-		{dbhIdle, dblIdle, dbdIdle} = 'sd0;
+		if (_sv2v_0)
+			;
+		{abhIdle, ablIdle, abdIdle} = 1'sb0;
+		{dbhIdle, dblIdle, dbdIdle} = 1'sb0;
+		(* full_case, parallel_case *)
 		case (1'b1)
 			ryl2Dbd: dbdMux = regs68L[actualRy];
 			rxl2Dbd: dbdMux = regs68L[actualRx];
-			Nanod[16]: dbdMux = alue;
-			Nanod[7]: dbdMux = dbin;
-			Nanod[13]: dbdMux = aluOut;
-			Nanod[18]: dbdMux = dcrOutput;
+			Nanod2[21]: dbdMux = alue;
+			Nanod[1]: dbdMux = dbin;
+			Nanod2[26]: dbdMux = aluOut;
+			Nanod2[23]: dbdMux = dcrOutput;
 			default: begin
-				dbdMux = 'sdX;
+				dbdMux = 1'sbx;
 				dbdIdle = 1'b1;
 			end
 		endcase
+		(* full_case, parallel_case *)
 		case (1'b1)
 			rxl2Dbl: dblMux = regs68L[actualRx];
 			ryl2Dbl: dblMux = regs68L[actualRy];
-			Nanod[93]: dblMux = ftu;
-			Nanod[11]: dblMux = auReg[15:0];
-			Nanod[70]: dblMux = Atl;
+			Nanod[45]: dblMux = ftu;
+			Nanod[5]: dblMux = auReg[15:0];
+			Nanod2[32]: dblMux = Atl;
 			Pcl2Dbl: dblMux = PcL;
 			default: begin
-				dblMux = 'sdX;
+				dblMux = 1'sbx;
 				dblIdle = 1'b1;
 			end
 		endcase
+		(* full_case, parallel_case *)
 		case (1'b1)
-			Nanod[45]: dbhMux = regs68H[actualRx];
-			Nanod[33]: dbhMux = regs68H[actualRy];
-			Nanod[11]: dbhMux = auReg[31:16];
-			Nanod[67]: dbhMux = Ath;
+			Nanod2[10]: dbhMux = regs68H[actualRx];
+			Nanod2[2]: dbhMux = regs68H[actualRy];
+			Nanod[5]: dbhMux = auReg[31:16];
+			Nanod2[29]: dbhMux = Ath;
 			Pch2Dbh: dbhMux = PcH;
 			default: begin
-				dbhMux = 'sdX;
+				dbhMux = 1'sbx;
 				dbhIdle = 1'b1;
 			end
 		endcase
+		(* full_case, parallel_case *)
 		case (1'b1)
 			ryl2Abd: abdMux = regs68L[actualRy];
 			rxl2Abd: abdMux = regs68L[actualRx];
-			Nanod[8]: abdMux = dbin;
-			Nanod[12]: abdMux = aluOut;
+			Nanod[2]: abdMux = dbin;
+			Nanod2[25]: abdMux = aluOut;
 			default: begin
-				abdMux = 'sdX;
+				abdMux = 1'sbx;
 				abdIdle = 1'b1;
 			end
 		endcase
+		(* full_case, parallel_case *)
 		case (1'b1)
 			Pcl2Abl: ablMux = PcL;
 			rxl2Abl: ablMux = regs68L[actualRx];
 			ryl2Abl: ablMux = regs68L[actualRy];
-			Nanod[92]: ablMux = ftu;
-			Nanod[10]: ablMux = auReg[15:0];
-			Nanod[62]: ablMux = aob[15:0];
-			Nanod[71]: ablMux = Atl;
+			Nanod[44]: ablMux = ftu;
+			Nanod[4]: ablMux = auReg[15:0];
+			Nanod2[27]: ablMux = aob[15:0];
+			Nanod2[33]: ablMux = Atl;
 			default: begin
-				ablMux = 'sdX;
+				ablMux = 1'sbx;
 				ablIdle = 1'b1;
 			end
 		endcase
+		(* full_case, parallel_case *)
 		case (1'b1)
 			Pch2Abh: abhMux = PcH;
-			Nanod[44]: abhMux = regs68H[actualRx];
-			Nanod[32]: abhMux = regs68H[actualRy];
-			Nanod[10]: abhMux = auReg[31:16];
-			Nanod[62]: abhMux = aob[31:16];
-			Nanod[66]: abhMux = Ath;
+			Nanod2[9]: abhMux = regs68H[actualRx];
+			Nanod2[1]: abhMux = regs68H[actualRy];
+			Nanod[4]: abhMux = auReg[31:16];
+			Nanod2[27]: abhMux = aob[31:16];
+			Nanod2[28]: abhMux = Ath;
 			default: begin
-				abhMux = 'sdX;
+				abhMux = 1'sbx;
 				abhIdle = 1'b1;
 			end
 		endcase
@@ -1087,13 +1181,13 @@ module excUnit (
 	reg [15:0] preDbh;
 	reg [15:0] preDbl;
 	reg [15:0] preDbd;
-	always @(posedge Clks[4]) begin
+	always @(posedge Clks_clk) begin
 		if (enT1) begin
 			{preAbh, preAbl, preAbd} <= {abhMux, ablMux, abdMux};
 			{preDbh, preDbl, preDbd} <= {dbhMux, dblMux, dbdMux};
 		end
 		if (enT2) begin
-			if (Nanod[5])
+			if (Nanod2[42])
 				Abh <= {16 {(ablIdle ? preAbd[15] : preAbl[15])}};
 			else if (abhIdle)
 				Abh <= (ablIdle ? preAbd : preAbl);
@@ -1102,9 +1196,9 @@ module excUnit (
 			if (~ablIdle)
 				Abl <= preAbl;
 			else
-				Abl <= (Nanod[3] ? preAbh : preAbd);
+				Abl <= (Nanod2[38] ? preAbh : preAbd);
 			Abd <= (~abdIdle ? preAbd : (ablIdle ? preAbh : preAbl));
-			if (Nanod[6])
+			if (Nanod2[43])
 				Dbh <= {16 {(dblIdle ? preDbd[15] : preDbl[15])}};
 			else if (dbhIdle)
 				Dbh <= (dblIdle ? preDbd : preDbl);
@@ -1113,46 +1207,51 @@ module excUnit (
 			if (~dblIdle)
 				Dbl <= preDbl;
 			else
-				Dbl <= (Nanod[1] ? preDbh : preDbd);
+				Dbl <= (Nanod2[36] ? preDbh : preDbd);
 			Dbd <= (~dbdIdle ? preDbd : (dblIdle ? preDbh : preDbl));
 		end
 	end
-	wire au2Aob = Nanod[63] | (Nanod[11] & Nanod[65]);
-	always @(posedge Clks[4])
+	wire au2Aob = Nanod[30] | (Nanod[5] & Nanod[32]);
+	always @(posedge Clks_clk)
 		if (enT1 & au2Aob)
 			aob <= auReg;
-		else if (enT2)
-			if (Nanod[65])
+		else if (enT2) begin
+			if (Nanod[32])
 				aob <= {preDbh, (~dblIdle ? preDbl : preDbd)};
-			else if (Nanod[64])
+			else if (Nanod[31])
 				aob <= {preAbh, (~ablIdle ? preAbl : preAbd)};
+		end
 	assign eab = aob[23:1];
 	assign aob0 = aob[0];
 	reg [31:0] auInpMux;
-	always @(*)
-		case (Nanod[78-:3])
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
+		case (Nanod2[46-:3])
 			3'b000: auInpMux = 0;
-			3'b001: auInpMux = (byteNotSpAlign | Nanod[79] ? 1 : 2);
+			3'b001: auInpMux = (byteNotSpAlign | Nanod2[47] ? 1 : 2);
 			3'b010: auInpMux = -4;
 			3'b011: auInpMux = {Abh, Abl};
 			3'b100: auInpMux = 2;
 			3'b101: auInpMux = 4;
 			3'b110: auInpMux = -2;
-			3'b111: auInpMux = (byteNotSpAlign | Nanod[79] ? -1 : -2);
-			default: auInpMux = 'sdX;
+			3'b111: auInpMux = (byteNotSpAlign | Nanod2[47] ? -1 : -2);
+			default: auInpMux = 1'sbx;
 		endcase
+	end
 	wire [16:0] aulow = Dbl + auInpMux[15:0];
 	wire [31:0] auResult = {(Dbh + auInpMux[31:16]) + aulow[16], aulow[15:0]};
-	always @(posedge Clks[4])
-		if (Clks[2])
-			auReg <= 'sd0;
-		else if (enT3 & Nanod[80])
+	always @(posedge Clks_clk)
+		if (Clks_pwrUp)
+			auReg <= 1'sb0;
+		else if (enT3 & Nanod2[48])
 			auReg <= auResult;
-	always @(posedge Clks[4])
+	always @(posedge Clks_clk)
 		if (enT3) begin
-			if (Nanod[43] | Nanod[39])
+			if (Nanod2[12] | Nanod2[14]) begin
 				if (~rxIsAreg) begin
-					if (Nanod[43])
+					if (Nanod2[12])
 						regs68L[actualRx] <= Dbd;
 					else if (abdIsByte)
 						regs68L[actualRx][7:0] <= Abd[7:0];
@@ -1160,10 +1259,11 @@ module excUnit (
 						regs68L[actualRx] <= Abd;
 				end
 				else
-					regs68L[actualRx] <= (Nanod[43] ? Dbl : Abl);
-			if (Nanod[31] | Nanod[30])
+					regs68L[actualRx] <= (Nanod2[12] ? Dbl : Abl);
+			end
+			if (Nanod2[6] | Nanod2[5]) begin
 				if (~ryIsAreg) begin
-					if (Nanod[31])
+					if (Nanod2[6])
 						regs68L[actualRy] <= Dbd;
 					else if (abdIsByte)
 						regs68L[actualRy][7:0] <= Abd[7:0];
@@ -1171,58 +1271,63 @@ module excUnit (
 						regs68L[actualRy] <= Abd;
 				end
 				else
-					regs68L[actualRy] <= (Nanod[31] ? Dbl : Abl);
-			if (Nanod[42] | Nanod[38])
-				regs68H[actualRx] <= (Nanod[42] ? Dbh : Abh);
-			if (Nanod[37] | Nanod[36])
-				regs68H[actualRy] <= (Nanod[37] ? Dbh : Abh);
+					regs68L[actualRy] <= (Nanod2[6] ? Dbl : Abl);
+			end
+			if (Nanod2[11] | Nanod2[13])
+				regs68H[actualRx] <= (Nanod2[11] ? Dbh : Abh);
+			if (Nanod2[8] | Nanod2[7])
+				regs68H[actualRy] <= (Nanod2[8] ? Dbh : Abh);
 		end
 	reg dbl2Pcl;
 	reg dbh2Pch;
 	reg abh2Pch;
 	reg abl2Pcl;
-	always @(posedge Clks[4]) begin
-		if (Clks[3]) begin
-			{dbl2Pcl, dbh2Pch, abh2Pch, abl2Pcl} <= 'sd0;
+	always @(posedge Clks_clk) begin
+		if (Clks_extReset) begin
+			{dbl2Pcl, dbh2Pch, abh2Pch, abl2Pcl} <= 1'sb0;
 			Pcl2Dbl <= 1'b0;
 			Pch2Dbh <= 1'b0;
 			Pcl2Abl <= 1'b0;
 			Pch2Abh <= 1'b0;
 		end
 		else if (enT4) begin
-			dbl2Pcl <= Nanod[53] & Nanod[48];
-			dbh2Pch <= Nanod[54] & Nanod[49];
-			abh2Pch <= Nanod[58] & Nanod[46];
-			abl2Pcl <= Nanod[57] & Nanod[47];
-			Pcl2Dbl <= Nanod[52] & Nanod[48];
-			Pch2Dbh <= Nanod[51] & Nanod[49];
-			Pcl2Abl <= Nanod[56] & Nanod[47];
-			Pch2Abh <= Nanod[55] & Nanod[46];
+			dbl2Pcl <= Nanod[23] & Nanod[18];
+			dbh2Pch <= Nanod[24] & Nanod[19];
+			abh2Pch <= Nanod[28] & Nanod[16];
+			abl2Pcl <= Nanod[27] & Nanod[17];
+			Pcl2Dbl <= Nanod[22] & Nanod[18];
+			Pch2Dbh <= Nanod[21] & Nanod[19];
+			Pcl2Abl <= Nanod[26] & Nanod[17];
+			Pch2Abh <= Nanod[25] & Nanod[16];
 		end
-		if (enT1 & Nanod[9])
+		if (enT1 & Nanod[3])
 			PcL <= auReg[15:0];
-		else if (enT3)
+		else if (enT3) begin
 			if (dbl2Pcl)
 				PcL <= Dbl;
 			else if (abl2Pcl)
 				PcL <= Abl;
-		if (enT1 & Nanod[9])
+		end
+		if (enT1 & Nanod[3])
 			PcH <= auReg[31:16];
-		else if (enT3)
+		else if (enT3) begin
 			if (dbh2Pch)
 				PcH <= Dbh;
 			else if (abh2Pch)
 				PcH <= Abh;
-		if (enT3)
-			if (Nanod[73])
+		end
+		if (enT3) begin
+			if (Nanod2[35])
 				Atl <= Dbl;
-			else if (Nanod[72])
+			else if (Nanod2[34])
 				Atl <= Abl;
-		if (enT3)
-			if (Nanod[69])
+		end
+		if (enT3) begin
+			if (Nanod2[31])
 				Ath <= Abh;
-			else if (Nanod[68])
+			else if (Nanod2[30])
 				Ath <= Dbh;
+		end
 	end
 	wire rmIdle;
 	wire [3:0] prHbit;
@@ -1232,10 +1337,10 @@ module excUnit (
 		.mask(prenLatch),
 		.hbit(prHbit)
 	);
-	always @(posedge Clks[4])
-		if (enT1 & Nanod[91])
+	always @(posedge Clks_clk)
+		if (enT1 & Nanod[43])
 			prenLatch <= dbin;
-		else if (enT3 & Nanod[90]) begin
+		else if (enT3 & Nanod[42]) begin
 			prenLatch[prHbit] <= 1'b0;
 			movemRx <= (Irdecod[33] ? ~prHbit : prHbit);
 		end
@@ -1245,40 +1350,47 @@ module excUnit (
 		.bin(dcrInput),
 		.bitMap(dcrCode)
 	);
-	always @(posedge Clks[4])
-		if (Clks[2])
-			dcr4 <= 'sd0;
-		else if (enT3 & Nanod[19]) begin
+	always @(posedge Clks_clk)
+		if (Clks_pwrUp)
+			dcr4 <= 1'sb0;
+		else if (enT3 & Nanod2[24]) begin
 			dcrOutput <= dcrCode;
 			dcr4 <= Abd[4];
 		end
 	reg [15:0] alub;
-	always @(posedge Clks[4])
-		if (enT3)
-			if (Nanod[15])
+	always @(posedge Clks_clk)
+		if (enT3) begin
+			if (Nanod2[20])
 				alub <= Dbd;
-			else if (Nanod[14])
+			else if (Nanod2[19])
 				alub <= Abd;
-	wire alueClkEn = enT3 & Nanod[17];
+		end
+	wire alueClkEn = enT3 & Nanod2[22];
 	reg [15:0] dobInput;
-	wire dobIdle = ~|Nanod[60-:2];
+	wire dobIdle = ~|Nanod2[18-:2];
 	localparam NANO_DOB_ADB = 2'b10;
 	localparam NANO_DOB_ALU = 2'b11;
 	localparam NANO_DOB_DBD = 2'b01;
-	always @(*)
-		case (Nanod[60-:2])
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
+		case (Nanod2[18-:2])
 			NANO_DOB_ADB: dobInput = Abd;
 			NANO_DOB_DBD: dobInput = Dbd;
 			NANO_DOB_ALU: dobInput = aluOut;
-			default: dobInput = 'sdX;
+			default: dobInput = 1'sbx;
 		endcase
+	end
 	dataIo dataIo(
-		.Clks(Clks),
+		.Clks_clk(Clks_clk),
+		.Clks_enPhi2(Clks_enPhi2),
 		.enT1(enT1),
 		.enT2(enT2),
 		.enT3(enT3),
 		.enT4(enT4),
 		.Nanod(Nanod),
+		.Nanod2(Nanod2),
 		.Irdecod(Irdecod),
 		.iEdb(iEdb),
 		.dobIdle(dobIdle),
@@ -1289,37 +1401,40 @@ module excUnit (
 		.oEdb(oEdb)
 	);
 	fx68kAlu alu(
-		.clk(Clks[4]),
-		.pwrUp(Clks[2]),
+		.clk(Clks_clk),
+		.pwrUp(Clks_pwrUp),
 		.enT1(enT1),
 		.enT3(enT3),
 		.enT4(enT4),
 		.ird(Ird),
-		.aluColumn(Nanod[27-:3]),
-		.aluAddrCtrl(Nanod[22]),
-		.init(Nanod[21]),
-		.finish(Nanod[20]),
+		.aluColumn(Nanod[13-:3]),
+		.aluAddrCtrl(Nanod[8]),
+		.init(Nanod[7]),
+		.finish(Nanod[6]),
 		.aluIsByte(Irdecod[32]),
-		.ftu2Ccr(Nanod[86]),
+		.ftu2Ccr(Nanod[38]),
 		.alub(alub),
 		.ftu(ftu),
 		.alueClkEn(alueClkEn),
 		.alue(alue),
-		.aluDataCtrl(Nanod[24-:2]),
+		.aluDataCtrl(Nanod[10-:2]),
 		.iDataBus(Dbd),
 		.iAddrBus(Abd),
 		.ze(ze),
 		.aluOut(aluOut),
 		.ccr(ccr)
 	);
+	initial _sv2v_0 = 0;
 endmodule
 module dataIo (
-	Clks,
+	Clks_clk,
+	Clks_enPhi2,
 	enT1,
 	enT2,
 	enT3,
 	enT4,
 	Nanod,
+	Nanod2,
 	Irdecod,
 	iEdb,
 	aob0,
@@ -1329,12 +1444,14 @@ module dataIo (
 	dbin,
 	oEdb
 );
-	input wire [4:0] Clks;
+	input Clks_clk;
+	input Clks_enPhi2;
 	input enT1;
 	input enT2;
 	input enT3;
 	input enT4;
-	input wire [104:0] Nanod;
+	input wire [55:0] Nanod;
+	input wire [48:0] Nanod2;
 	input wire [41:0] Irdecod;
 	input [15:0] iEdb;
 	input aob0;
@@ -1350,25 +1467,25 @@ module dataIo (
 	reg dbinNoHigh;
 	reg byteMux;
 	reg isByte_T4;
-	always @(posedge Clks[4]) begin
+	always @(posedge Clks_clk) begin
 		if (enT4)
 			isByte_T4 <= Irdecod[32];
 		if (enT3) begin
-			dbinNoHigh <= Nanod[98];
-			dbinNoLow <= Nanod[99];
-			byteMux <= (Nanod[101] & isByte_T4) & ~aob0;
+			dbinNoHigh <= Nanod[50];
+			dbinNoLow <= Nanod[51];
+			byteMux <= (Nanod[52] & isByte_T4) & ~aob0;
 		end
 		if (enT1) begin
 			xToDbin <= 1'b0;
 			xToIrc <= 1'b0;
 		end
 		else if (enT3) begin
-			xToDbin <= Nanod[75];
-			xToIrc <= Nanod[74];
+			xToDbin <= Nanod2[41];
+			xToIrc <= Nanod2[40];
 		end
-		if (xToIrc & Clks[0])
+		if (xToIrc & Clks_enPhi2)
 			Irc <= iEdb;
-		if (xToDbin & Clks[0]) begin
+		if (xToDbin & Clks_enPhi2) begin
 			if (~dbinNoLow)
 				dbin[7:0] <= (byteMux ? iEdb[15:8] : iEdb[7:0]);
 			if (~dbinNoHigh)
@@ -1376,12 +1493,12 @@ module dataIo (
 		end
 	end
 	reg byteCycle;
-	always @(posedge Clks[4]) begin
+	always @(posedge Clks_clk) begin
 		if (enT4)
-			byteCycle <= Nanod[101] & Irdecod[32];
+			byteCycle <= Nanod[52] & Irdecod[32];
 		if (enT3 & ~dobIdle) begin
-			dob[7:0] <= (Nanod[99] ? dobInput[15:8] : dobInput[7:0]);
-			dob[15:8] <= (byteCycle | Nanod[98] ? dobInput[7:0] : dobInput[15:8]);
+			dob[7:0] <= (Nanod[51] ? dobInput[15:8] : dobInput[7:0]);
+			dob[15:8] <= (byteCycle | Nanod[50] ? dobInput[7:0] : dobInput[15:8]);
 		end
 	end
 	assign oEdb = dob;
@@ -1397,16 +1514,17 @@ module uaddrDecode (
 	isLineF,
 	lineBmap
 );
+	reg _sv2v_0;
 	input [15:0] opcode;
 	localparam UADDR_WIDTH = 10;
-	output [UADDR_WIDTH - 1:0] a1;
-	output [UADDR_WIDTH - 1:0] a2;
-	output [UADDR_WIDTH - 1:0] a3;
+	output wire [9:0] a1;
+	output wire [9:0] a2;
+	output wire [9:0] a3;
 	output reg isPriv;
 	output wire isIllegal;
 	output wire isLineA;
 	output wire isLineF;
-	output [15:0] lineBmap;
+	output wire [15:0] lineBmap;
 	wire [3:0] line = opcode[15:12];
 	wire [3:0] eaCol;
 	wire [3:0] movEa;
@@ -1414,8 +1532,8 @@ module uaddrDecode (
 		.bin(line),
 		.bitMap(lineBmap)
 	);
-	assign isLineA = lineBmap['hA];
-	assign isLineF = lineBmap['hF];
+	assign isLineA = lineBmap['ha];
+	assign isLineF = lineBmap['hf];
 	pla_lined pla_lined(
 		.movEa(movEa),
 		.col(eaCol),
@@ -1426,10 +1544,9 @@ module uaddrDecode (
 		.plaA2(a2),
 		.plaA3(a3)
 	);
-	assign eaCol = eaDecode(opcode[5:0]);
-	assign movEa = eaDecode({opcode[8:6], opcode[11:9]});
 	function [3:0] eaDecode;
-		input reg [5:0] eaBits;
+		input [5:0] eaBits;
+		(* full_case, parallel_case *)
 		case (eaBits[5:3])
 			3'b111:
 				case (eaBits[2:0])
@@ -1443,9 +1560,14 @@ module uaddrDecode (
 			default: eaDecode = eaBits[5:3];
 		endcase
 	endfunction
-	always @(*)
+	assign eaCol = eaDecode(opcode[5:0]);
+	assign movEa = eaDecode({opcode[8:6], opcode[11:9]});
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (lineBmap)
-			'h01: isPriv = (opcode & 16'hf5ff) == 16'h007c;
+			'h1: isPriv = (opcode & 16'hf5ff) == 16'h007c;
 			'h10:
 				if ((opcode & 16'hffc0) == 16'h46c0)
 					isPriv = 1'b1;
@@ -1457,23 +1579,28 @@ module uaddrDecode (
 					isPriv = 1'b0;
 			default: isPriv = 1'b0;
 		endcase
+	end
+	initial _sv2v_0 = 0;
 endmodule
 module onehotEncoder4 (
 	bin,
 	bitMap
 );
+	reg _sv2v_0;
 	input [3:0] bin;
 	output reg [15:0] bitMap;
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		case (bin)
-			'b0000: bitMap = 16'h0001;
-			'b0001: bitMap = 16'h0002;
-			'b0010: bitMap = 16'h0004;
-			'b0011: bitMap = 16'h0008;
-			'b0100: bitMap = 16'h0010;
-			'b0101: bitMap = 16'h0020;
-			'b0110: bitMap = 16'h0040;
-			'b0111: bitMap = 16'h0080;
+			'b0: bitMap = 16'h0001;
+			'b1: bitMap = 16'h0002;
+			'b10: bitMap = 16'h0004;
+			'b11: bitMap = 16'h0008;
+			'b100: bitMap = 16'h0010;
+			'b101: bitMap = 16'h0020;
+			'b110: bitMap = 16'h0040;
+			'b111: bitMap = 16'h0080;
 			'b1000: bitMap = 16'h0100;
 			'b1001: bitMap = 16'h0200;
 			'b1010: bitMap = 16'h0400;
@@ -1483,6 +1610,8 @@ module onehotEncoder4 (
 			'b1110: bitMap = 16'h4000;
 			'b1111: bitMap = 16'h8000;
 		endcase
+	end
+	initial _sv2v_0 = 0;
 endmodule
 module pren (
 	mask,
@@ -1492,7 +1621,7 @@ module pren (
 	parameter outbits = 4;
 	input [size - 1:0] mask;
 	output reg [outbits - 1:0] hbit;
-	always @(mask) begin : sv2v_autoblock_3
+	always @(mask) begin : sv2v_autoblock_1
 		integer i;
 		hbit = 0;
 		for (i = size - 1; i >= 0; i = i - 1)
@@ -1501,7 +1630,8 @@ module pren (
 	end
 endmodule
 module sequencer (
-	Clks,
+	Clks_clk,
+	Clks_extReset,
 	enT3,
 	microLatch,
 	A0Err,
@@ -1530,10 +1660,12 @@ module sequencer (
 	tvn,
 	nma
 );
-	input wire [4:0] Clks;
+	reg _sv2v_0;
+	input Clks_clk;
+	input Clks_extReset;
 	input enT3;
 	localparam UROM_WIDTH = 17;
-	input [UROM_WIDTH - 1:0] microLatch;
+	input [16:0] microLatch;
 	input A0Err;
 	input BerrA;
 	input busAddrErr;
@@ -1555,22 +1687,24 @@ module sequencer (
 	input [1:0] alue01;
 	input [15:0] Ird;
 	localparam UADDR_WIDTH = 10;
-	input [UADDR_WIDTH - 1:0] a1;
-	input [UADDR_WIDTH - 1:0] a2;
-	input [UADDR_WIDTH - 1:0] a3;
+	input [9:0] a1;
+	input [9:0] a2;
+	input [9:0] a3;
 	output reg [3:0] tvn;
-	output reg [UADDR_WIDTH - 1:0] nma;
-	reg [UADDR_WIDTH - 1:0] uNma;
-	reg [UADDR_WIDTH - 1:0] grp1Nma;
+	output reg [9:0] nma;
+	reg [9:0] uNma;
+	reg [9:0] grp1Nma;
 	reg [1:0] c0c1;
 	reg a0Rst;
 	wire A0Sel;
 	wire inGrp0Exc;
-	wire [UADDR_WIDTH - 1:0] dbNma = {microLatch[14:13], microLatch[6:5], microLatch[10:7], microLatch[12:11]};
-	localparam BSER1_NMA = 'h003;
-	localparam HALT1_NMA = 'h001;
-	localparam RSTP0_NMA = 'h002;
-	always @(*)
+	wire [9:0] dbNma = {microLatch[14:13], microLatch[6:5], microLatch[10:7], microLatch[12:11]};
+	localparam BSER1_NMA = 'h3;
+	localparam HALT1_NMA = 'h1;
+	localparam RSTP0_NMA = 'h2;
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if (A0Err) begin
 			if (a0Rst)
 				nma = RSTP0_NMA;
@@ -1581,7 +1715,10 @@ module sequencer (
 		end
 		else
 			nma = uNma;
-	always @(*)
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if (microLatch[1])
 			uNma = {microLatch[14:13], c0c1, microLatch[10:7], microLatch[12:11]};
 		else
@@ -1591,6 +1728,7 @@ module sequencer (
 				2: uNma = a2;
 				3: uNma = a3;
 			endcase
+	end
 	wire [1:0] enl = {Ird[6], prenEmpty};
 	wire [1:0] ms0 = {Ird[8], alue01[0]};
 	wire [3:0] m01 = {au05z, Ird[8], alue01};
@@ -1602,52 +1740,59 @@ module sequencer (
 	reg ccTest;
 	wire [4:0] cbc = microLatch[6:2];
 	localparam CF = 0;
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (cbc)
 			'h0: c0c1 = {i11, i11};
 			'h1: c0c1 = (au05z ? 2'b01 : 2'b11);
 			'h11: c0c1 = (au05z ? 2'b00 : 2'b11);
-			'h02: c0c1 = {1'b0, ~psw[CF]};
+			'h2: c0c1 = {1'b0, ~psw[CF]};
 			'h12: c0c1 = {1'b1, ~psw[CF]};
-			'h03: c0c1 = {psw[ZF], psw[ZF]};
-			'h04:
+			'h3: c0c1 = {psw[ZF], psw[ZF]};
+			'h4:
 				case (nz1)
-					'b00: c0c1 = 2'b10;
+					'b0: c0c1 = 2'b10;
 					'b10: c0c1 = 2'b01;
-					'b01, 'b11: c0c1 = 2'b11;
+					'b1, 'b11: c0c1 = 2'b11;
 				endcase
-			'h05: c0c1 = {psw[NF], 1'b1};
+			'h5: c0c1 = {psw[NF], 1'b1};
 			'h15: c0c1 = {1'b1, psw[NF]};
-			'h06: c0c1 = {~nz1[1] & ~nz1[0], 1'b1};
-			'h07:
+			'h6: c0c1 = {~nz1[1] & ~nz1[0], 1'b1};
+			'h7:
 				case (ms0)
-					'b10, 'b00: c0c1 = 2'b11;
-					'b01: c0c1 = 2'b01;
+					'b10, 'b0: c0c1 = 2'b11;
+					'b1: c0c1 = 2'b01;
 					'b11: c0c1 = 2'b10;
 				endcase
-			'h08:
+			'h8:
 				case (m01)
-					'b0000, 'b0001, 'b0100, 'b0111: c0c1 = 2'b11;
-					'b0010, 'b0011, 'b0101: c0c1 = 2'b01;
-					'b0110: c0c1 = 2'b10;
+					'b0, 'b1, 'b100, 'b111: c0c1 = 2'b11;
+					'b10, 'b11, 'b101: c0c1 = 2'b01;
+					'b110: c0c1 = 2'b10;
 					default: c0c1 = 2'b00;
 				endcase
-			'h09: c0c1 = (ccTest ? 2'b11 : 2'b01);
+			'h9: c0c1 = (ccTest ? 2'b11 : 2'b01);
 			'h19: c0c1 = (ccTest ? 2'b11 : 2'b10);
-			'h0c: c0c1 = (dcr4 ? 2'b01 : 2'b11);
+			'hc: c0c1 = (dcr4 ? 2'b01 : 2'b11);
 			'h1c: c0c1 = (dcr4 ? 2'b10 : 2'b11);
-			'h0a: c0c1 = (ze ? 2'b11 : 2'b00);
-			'h0b: c0c1 = (nv == 2'b00 ? 2'b00 : 2'b11);
-			'h0d: c0c1 = {~psw[VF], ~psw[VF]};
-			'h0e, 'h1e:
+			'ha: c0c1 = (ze ? 2'b11 : 2'b00);
+			'hb: c0c1 = (nv == 2'b00 ? 2'b00 : 2'b11);
+			'hd: c0c1 = {~psw[VF], ~psw[VF]};
+			'he, 'h1e:
 				case (enl)
 					2'b00: c0c1 = 'b10;
 					2'b10: c0c1 = 'b11;
 					2'b01, 2'b11: c0c1 = {1'b0, microLatch[6]};
 				endcase
-			default: c0c1 = 'sdX;
+			default: c0c1 = 1'sbx;
 		endcase
-	always @(*)
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (Ird[11:8])
 			'h0: ccTest = 1'b1;
 			'h1: ccTest = 1'b0;
@@ -1666,6 +1811,7 @@ module sequencer (
 			'he: ccTest = ((psw[NF] & psw[VF]) & ~psw[ZF]) | ((~psw[NF] & ~psw[VF]) & ~psw[ZF]);
 			'hf: ccTest = (psw[ZF] | (psw[NF] & ~psw[VF])) | (~psw[NF] & psw[VF]);
 		endcase
+	end
 	reg rTrace;
 	reg rInterrupt;
 	reg rIllegal;
@@ -1683,7 +1829,7 @@ module sequencer (
 	assign grp0LatchEn = microLatch[4] & !microLatch[1];
 	assign inGrp0Exc = (rExcRst | rExcBusErr) | rExcAdrErr;
 	localparam SF = 13;
-	always @(posedge Clks[4]) begin
+	always @(posedge Clks_clk) begin
 		if (grp0LatchEn & enT3) begin
 			rExcRst <= excRst;
 			rExcBusErr <= BerrA;
@@ -1700,15 +1846,17 @@ module sequencer (
 			rPriv <= isPriv & !psw[SF];
 		end
 	end
-	localparam ITLX1_NMA = 'h1C4;
-	localparam TRAC1_NMA = 'h1C0;
+	localparam ITLX1_NMA = 'h1c4;
+	localparam TRAC1_NMA = 'h1c0;
 	localparam TVN_AUTOVEC = 13;
 	localparam TVN_INTERRUPT = 15;
 	localparam TVN_SPURIOUS = 12;
 	always @(*) begin
+		if (_sv2v_0)
+			;
 		grp1Nma = TRAC1_NMA;
 		if (rExcRst)
-			tvn = 'sd0;
+			tvn = 1'sb0;
 		else if (rExcBusErr | rExcAdrErr)
 			tvn = {1'b1, rExcAdrErr};
 		else if (rSpurious | rAutovec)
@@ -1720,6 +1868,7 @@ module sequencer (
 			grp1Nma = ITLX1_NMA;
 		end
 		else
+			(* full_case, parallel_case *)
 			case (1'b1)
 				rIllegal: tvn = 4;
 				rPriv: tvn = 8;
@@ -1729,14 +1878,18 @@ module sequencer (
 			endcase
 	end
 	assign A0Sel = ((((rIllegal | rLineF) | rLineA) | rPriv) | rTrace) | rInterrupt;
-	always @(posedge Clks[4])
-		if (Clks[3])
+	always @(posedge Clks_clk)
+		if (Clks_extReset)
 			a0Rst <= 1'b1;
 		else if (enT3)
 			a0Rst <= 1'b0;
+	initial _sv2v_0 = 0;
 endmodule
 module busArbiter (
-	Clks,
+	Clks_clk,
+	Clks_extReset,
+	Clks_enPhi1,
+	Clks_enPhi2,
 	BRi,
 	BgackI,
 	Halti,
@@ -1744,80 +1897,88 @@ module busArbiter (
 	busAvail,
 	BGn
 );
-	input wire [4:0] Clks;
+	reg _sv2v_0;
+	input Clks_clk;
+	input Clks_extReset;
+	input Clks_enPhi1;
+	input Clks_enPhi2;
 	input BRi;
 	input BgackI;
 	input Halti;
 	input bgBlock;
-	output busAvail;
+	output wire busAvail;
 	output reg BGn;
 	reg [31:0] dmaPhase;
 	reg [31:0] next;
-	localparam [31:0] D1 = 2;
-	localparam [31:0] D2 = 7;
-	localparam [31:0] D3 = 6;
-	localparam [31:0] DIDLE = 1;
-	localparam [31:0] DRESET = 0;
-	localparam [31:0] D_BA = 4;
-	localparam [31:0] D_BR = 3;
-	localparam [31:0] D_BRA = 5;
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		case (dmaPhase)
-			DRESET: next = DIDLE;
-			DIDLE:
+			32'd0: next = 32'd1;
+			32'd1:
 				if (bgBlock)
-					next = DIDLE;
+					next = 32'd1;
 				else if (~BgackI)
-					next = D_BA;
+					next = 32'd4;
 				else if (~BRi)
-					next = D1;
+					next = 32'd2;
 				else
-					next = DIDLE;
-			D_BA:
+					next = 32'd1;
+			32'd4:
 				if (~BRi & !bgBlock)
-					next = D3;
+					next = 32'd6;
 				else if (~BgackI & !bgBlock)
-					next = D_BA;
+					next = 32'd4;
 				else
-					next = DIDLE;
-			D1: next = D_BR;
-			D_BR: next = (~BRi & BgackI ? D_BR : D_BA);
-			D3: next = D_BRA;
-			D_BRA:
+					next = 32'd1;
+			32'd2: next = 32'd3;
+			32'd3: next = (~BRi & BgackI ? 32'd3 : 32'd4);
+			32'd6: next = 32'd5;
+			32'd5:
 				case ({BgackI, BRi})
-					2'b11: next = DIDLE;
-					2'b10: next = D_BR;
-					2'b01: next = D2;
-					2'b00: next = D_BRA;
+					2'b11: next = 32'd1;
+					2'b10: next = 32'd3;
+					2'b01: next = 32'd7;
+					2'b00: next = 32'd5;
 				endcase
-			D2: next = D_BA;
-			default: next = DIDLE;
+			32'd7: next = 32'd4;
+			default: next = 32'd1;
 		endcase
+	end
 	reg granting;
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (next)
-			D1, D3, D_BR, D_BRA: granting = 1'b1;
+			32'd2, 32'd6, 32'd3, 32'd5: granting = 1'b1;
 			default: granting = 1'b0;
 		endcase
+	end
 	reg rGranted;
 	assign busAvail = ((Halti & BRi) & BgackI) & ~rGranted;
-	always @(posedge Clks[4]) begin
-		if (Clks[3]) begin
-			dmaPhase <= DRESET;
+	always @(posedge Clks_clk) begin
+		if (Clks_extReset) begin
+			dmaPhase <= 32'd0;
 			rGranted <= 1'b0;
 		end
-		else if (Clks[0]) begin
+		else if (Clks_enPhi2) begin
 			dmaPhase <= next;
 			rGranted <= granting;
 		end
-		if (Clks[3])
+		if (Clks_extReset)
 			BGn <= 1'b1;
-		else if (Clks[1])
+		else if (Clks_enPhi1)
 			BGn <= ~rGranted;
 	end
+	initial _sv2v_0 = 0;
 endmodule
 module busControl (
-	Clks,
+	Clks_clk,
+	Clks_extReset,
+	Clks_pwrUp,
+	Clks_enPhi1,
+	Clks_enPhi2,
 	enT1,
 	enT4,
 	permStart,
@@ -1842,7 +2003,12 @@ module busControl (
 	UDSn,
 	eRWn
 );
-	input wire [4:0] Clks;
+	reg _sv2v_0;
+	input Clks_clk;
+	input Clks_extReset;
+	input Clks_pwrUp;
+	input Clks_enPhi1;
+	input Clks_enPhi2;
 	input enT1;
 	input enT4;
 	input permStart;
@@ -1853,19 +2019,19 @@ module busControl (
 	input isByte;
 	input isRmc;
 	input busAvail;
-	output bgBlock;
-	output busAddrErr;
-	output waitBusCycle;
-	output busStarting;
+	output wire bgBlock;
+	output wire busAddrErr;
+	output wire waitBusCycle;
+	output wire busStarting;
 	output reg addrOe;
-	output bciWrite;
+	output wire bciWrite;
 	input rDtack;
 	input BeDebounced;
 	input Vpai;
-	output ASn;
-	output LDSn;
-	output UDSn;
-	output eRWn;
+	output wire ASn;
+	output wire LDSn;
+	output wire UDSn;
+	output wire eRWn;
 	reg rAS;
 	reg rLDS;
 	reg rUDS;
@@ -1892,102 +2058,100 @@ module busControl (
 	wire busRetry = ~busAddrErr & 1'b0;
 	reg [31:0] busPhase;
 	reg [31:0] next;
-	localparam [31:0] SRESET = 0;
-	always @(posedge Clks[4])
-		if (Clks[3])
-			busPhase <= SRESET;
-		else if (Clks[1])
+	always @(posedge Clks_clk)
+		if (Clks_extReset)
+			busPhase <= 32'd0;
+		else if (Clks_enPhi1)
 			busPhase <= next;
-	localparam [31:0] S0 = 2;
-	localparam [31:0] S2 = 3;
-	localparam [31:0] S4 = 4;
-	localparam [31:0] S6 = 5;
-	localparam [31:0] SIDLE = 1;
-	localparam [31:0] SRMC_RES = 6;
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		case (busPhase)
-			SRESET: next = SIDLE;
-			SRMC_RES: next = SIDLE;
-			S0: next = S2;
-			S2: next = S4;
-			S4: next = (busEnd ? S6 : S4);
-			S6: next = (isRcmReset ? SRMC_RES : (canStart ? S0 : SIDLE));
-			SIDLE: next = (canStart ? S0 : SIDLE);
-			default: next = SIDLE;
+			32'd0: next = 32'd1;
+			32'd6: next = 32'd1;
+			32'd2: next = 32'd3;
+			32'd3: next = 32'd4;
+			32'd4: next = (busEnd ? 32'd5 : 32'd4);
+			32'd5: next = (isRcmReset ? 32'd6 : (canStart ? 32'd2 : 32'd1));
+			32'd1: next = (canStart ? 32'd2 : 32'd1);
+			default: next = 32'd1;
 		endcase
-	wire rmcIdle = ((busPhase == SIDLE) & ~ASn) & isRmcReg;
+	end
+	wire rmcIdle = ((busPhase == 32'd1) & ~ASn) & isRmcReg;
 	assign canStart = (((busAvail | rmcIdle) & (bcPend | permStart)) & !busRetry) & !bcReset;
-	wire busEnding = (next == SIDLE) | (next == S0);
-	assign busStarting = busPhase == S0;
+	wire busEnding = (next == 32'd1) | (next == 32'd2);
+	assign busStarting = busPhase == 32'd2;
 	assign busEnd = ~rDtack | iStop;
-	assign bcComplete = busPhase == S6;
+	assign bcComplete = busPhase == 32'd5;
 	wire bciClear = bcComplete & ~busRetry;
-	assign bcReset = Clks[3] | ((addrOeDelay & BeDebounced) & Vpai);
+	assign bcReset = Clks_extReset | ((addrOeDelay & BeDebounced) & Vpai);
 	assign waitBusCycle = wendReg & !bcComplete;
-	assign bgBlock = ((busPhase == S0) & ASn) | (busPhase == SRMC_RES);
-	always @(posedge Clks[4]) begin
-		if (Clks[3])
+	assign bgBlock = ((busPhase == 32'd2) & ASn) | (busPhase == 32'd6);
+	always @(posedge Clks_clk) begin
+		if (Clks_extReset)
 			addrOe <= 1'b0;
-		else if (Clks[0] & (busPhase == S0))
+		else if (Clks_enPhi2 & (busPhase == 32'd2))
 			addrOe <= 1'b1;
-		else if (Clks[1] & (busPhase == SRMC_RES))
+		else if (Clks_enPhi1 & (busPhase == 32'd6))
 			addrOe <= 1'b0;
-		else if ((Clks[1] & ~isRmcReg) & busEnding)
+		else if ((Clks_enPhi1 & ~isRmcReg) & busEnding)
 			addrOe <= 1'b0;
-		if (Clks[1])
+		if (Clks_enPhi1)
 			addrOeDelay <= addrOe;
-		if (Clks[3]) begin
+		if (Clks_extReset) begin
 			rAS <= 1'b1;
 			rUDS <= 1'b1;
 			rLDS <= 1'b1;
 			rRWn <= 1'b1;
-			dataOe <= 'sd0;
+			dataOe <= 1'sb0;
 		end
 		else begin
-			if ((Clks[0] & isWriteReg) & (busPhase == S2))
+			if ((Clks_enPhi2 & isWriteReg) & (busPhase == 32'd3))
 				dataOe <= 1'b1;
-			else if (Clks[1] & (busEnding | (busPhase == SIDLE)))
+			else if (Clks_enPhi1 & (busEnding | (busPhase == 32'd1)))
 				dataOe <= 1'b0;
-			if (Clks[1] & busEnding)
+			if (Clks_enPhi1 & busEnding)
 				rRWn <= 1'b1;
-			else if (Clks[1] & isWriteReg)
-				if ((busPhase == S0) & isWriteReg)
+			else if (Clks_enPhi1 & isWriteReg) begin
+				if ((busPhase == 32'd2) & isWriteReg)
 					rRWn <= 1'b0;
-			if (Clks[1] & (busPhase == S0))
+			end
+			if (Clks_enPhi1 & (busPhase == 32'd2))
 				rAS <= 1'b0;
-			else if (Clks[0] & (busPhase == SRMC_RES))
+			else if (Clks_enPhi2 & (busPhase == 32'd6))
 				rAS <= 1'b1;
-			else if ((Clks[0] & bcComplete) & ~SRMC_RES)
+			else if ((Clks_enPhi2 & bcComplete) & ~32'd6) begin
 				if (~isRmcReg)
 					rAS <= 1'b1;
-			if (Clks[1] & (busPhase == S0)) begin
+			end
+			if (Clks_enPhi1 & (busPhase == 32'd2)) begin
 				if (~isWriteReg & !busAddrErr) begin
 					rUDS <= ~(~bciByte | ~aob0);
 					rLDS <= ~(~bciByte | aob0);
 				end
 			end
-			else if (((Clks[1] & isWriteReg) & (busPhase == S2)) & !busAddrErr) begin
+			else if (((Clks_enPhi1 & isWriteReg) & (busPhase == 32'd3)) & !busAddrErr) begin
 				rUDS <= ~(~bciByte | ~aob0);
 				rLDS <= ~(~bciByte | aob0);
 			end
-			else if (Clks[0] & bcComplete) begin
+			else if (Clks_enPhi2 & bcComplete) begin
 				rUDS <= 1'b1;
 				rLDS <= 1'b1;
 			end
 		end
 	end
-	always @(posedge Clks[4])
+	always @(posedge Clks_clk)
 		if (enT4)
 			isByteT4 <= isByte;
-	always @(posedge Clks[4])
-		if (Clks[2]) begin
+	always @(posedge Clks_clk)
+		if (Clks_pwrUp) begin
 			bcPend <= 1'b0;
 			wendReg <= 1'b0;
 			isWriteReg <= 1'b0;
 			bciByte <= 1'b0;
 			isRmcReg <= 1'b0;
 		end
-		else if (Clks[0] & (bciClear | bcReset)) begin
+		else if (Clks_enPhi2 & (bciClear | bcReset)) begin
 			bcPend <= 1'b0;
 			wendReg <= 1'b0;
 		end
@@ -2001,82 +2165,53 @@ module busControl (
 			if (enT1)
 				wendReg <= permStop;
 		end
-endmodule
-module uRom (
-	clk,
-	microAddr,
-	microOutput
-);
-	input clk;
-	localparam UADDR_WIDTH = 10;
-	input [UADDR_WIDTH - 1:0] microAddr;
-	localparam UROM_WIDTH = 17;
-	output reg [UROM_WIDTH - 1:0] microOutput;
-	localparam UROM_DEPTH = 1024;
-	reg [UROM_WIDTH - 1:0] uRam [0:UROM_DEPTH - 1];
-	initial $readmemb("microrom.mem", uRam);
-	always @(posedge clk) microOutput <= uRam[microAddr];
-endmodule
-module nanoRom (
-	clk,
-	nanoAddr,
-	nanoOutput
-);
-	input clk;
-	localparam NADDR_WIDTH = 9;
-	input [NADDR_WIDTH - 1:0] nanoAddr;
-	localparam NANO_WIDTH = 68;
-	output reg [NANO_WIDTH - 1:0] nanoOutput;
-	localparam NANO_DEPTH = 336;
-	reg [NANO_WIDTH - 1:0] nRam [0:NANO_DEPTH - 1];
-	initial $readmemb("nanorom.mem", nRam);
-	always @(posedge clk) nanoOutput <= nRam[nanoAddr];
+	initial _sv2v_0 = 0;
 endmodule
 module microToNanoAddr (
 	uAddr,
 	orgAddr
 );
 	localparam UADDR_WIDTH = 10;
-	input [UADDR_WIDTH - 1:0] uAddr;
+	input [9:0] uAddr;
 	localparam NADDR_WIDTH = 9;
-	output [NADDR_WIDTH - 1:0] orgAddr;
-	wire [UADDR_WIDTH - 1:2] baseAddr = uAddr[UADDR_WIDTH - 1:2];
-	reg [NADDR_WIDTH - 1:2] orgBase;
+	output wire [8:0] orgAddr;
+	wire [9:2] baseAddr = uAddr[9:2];
+	reg [8:2] orgBase;
 	assign orgAddr = {orgBase, uAddr[1:0]};
 	always @(baseAddr)
 		case (baseAddr)
-			'h00: orgBase = 7'h0;
-			'h01: orgBase = 7'h1;
-			'h02: orgBase = 7'h2;
-			'h03: orgBase = 7'h2;
-			'h08: orgBase = 7'h3;
-			'h09: orgBase = 7'h4;
-			'h0A: orgBase = 7'h5;
-			'h0B: orgBase = 7'h5;
-			'h10: orgBase = 7'h6;
-			'h11: orgBase = 7'h7;
-			'h12: orgBase = 7'h8;
-			'h13: orgBase = 7'h8;
-			'h18: orgBase = 7'h9;
-			'h19: orgBase = 7'hA;
-			'h1A: orgBase = 7'hB;
-			'h1B: orgBase = 7'hB;
-			'h20: orgBase = 7'hC;
-			'h21: orgBase = 7'hD;
-			'h22: orgBase = 7'hE;
-			'h23: orgBase = 7'hD;
-			'h28: orgBase = 7'hF;
+			'h0: orgBase = 7'h00;
+			'h1: orgBase = 7'h01;
+			'h2: orgBase = 7'h02;
+			'h3: orgBase = 7'h02;
+			'h8: orgBase = 7'h03;
+			'h9: orgBase = 7'h04;
+			'ha: orgBase = 7'h05;
+			'hb: orgBase = 7'h05;
+			'h10: orgBase = 7'h06;
+			'h11: orgBase = 7'h07;
+			'h12: orgBase = 7'h08;
+			'h13: orgBase = 7'h08;
+			'h18: orgBase = 7'h09;
+			'h19: orgBase = 7'h0a;
+			'h1a: orgBase = 7'h0b;
+			'h1b: orgBase = 7'h0b;
+			'h20: orgBase = 7'h0c;
+			'h21: orgBase = 7'h0d;
+			'h22: orgBase = 7'h0e;
+			'h23: orgBase = 7'h0d;
+			'h28: orgBase = 7'h0f;
 			'h29: orgBase = 7'h10;
-			'h2A: orgBase = 7'h11;
-			'h2B: orgBase = 7'h10;
+			'h2a: orgBase = 7'h11;
+			'h2b: orgBase = 7'h10;
 			'h30: orgBase = 7'h12;
 			'h31: orgBase = 7'h13;
 			'h32: orgBase = 7'h14;
 			'h33: orgBase = 7'h14;
 			'h38: orgBase = 7'h15;
 			'h39: orgBase = 7'h16;
-			'h3A: orgBase = 7'h17;
-			'h3B: orgBase = 7'h17;
+			'h3a: orgBase = 7'h17;
+			'h3b: orgBase = 7'h17;
 			'h40: orgBase = 7'h18;
 			'h41: orgBase = 7'h18;
 			'h42: orgBase = 7'h18;
@@ -2085,22 +2220,22 @@ module microToNanoAddr (
 			'h45: orgBase = 7'h19;
 			'h46: orgBase = 7'h19;
 			'h47: orgBase = 7'h19;
-			'h48: orgBase = 7'h1A;
-			'h49: orgBase = 7'h1A;
-			'h4A: orgBase = 7'h1A;
-			'h4B: orgBase = 7'h1A;
-			'h4C: orgBase = 7'h1B;
-			'h4D: orgBase = 7'h1B;
-			'h4E: orgBase = 7'h1B;
-			'h4F: orgBase = 7'h1B;
-			'h54: orgBase = 7'h1C;
-			'h55: orgBase = 7'h1D;
-			'h56: orgBase = 7'h1E;
-			'h57: orgBase = 7'h1F;
-			'h5C: orgBase = 7'h20;
-			'h5D: orgBase = 7'h21;
-			'h5E: orgBase = 7'h22;
-			'h5F: orgBase = 7'h23;
+			'h48: orgBase = 7'h1a;
+			'h49: orgBase = 7'h1a;
+			'h4a: orgBase = 7'h1a;
+			'h4b: orgBase = 7'h1a;
+			'h4c: orgBase = 7'h1b;
+			'h4d: orgBase = 7'h1b;
+			'h4e: orgBase = 7'h1b;
+			'h4f: orgBase = 7'h1b;
+			'h54: orgBase = 7'h1c;
+			'h55: orgBase = 7'h1d;
+			'h56: orgBase = 7'h1e;
+			'h57: orgBase = 7'h1f;
+			'h5c: orgBase = 7'h20;
+			'h5d: orgBase = 7'h21;
+			'h5e: orgBase = 7'h22;
+			'h5f: orgBase = 7'h23;
 			'h70: orgBase = 7'h24;
 			'h71: orgBase = 7'h24;
 			'h72: orgBase = 7'h24;
@@ -2111,76 +2246,76 @@ module microToNanoAddr (
 			'h77: orgBase = 7'h24;
 			'h78: orgBase = 7'h25;
 			'h79: orgBase = 7'h25;
-			'h7A: orgBase = 7'h25;
-			'h7B: orgBase = 7'h25;
-			'h7C: orgBase = 7'h25;
-			'h7D: orgBase = 7'h25;
-			'h7E: orgBase = 7'h25;
-			'h7F: orgBase = 7'h25;
+			'h7a: orgBase = 7'h25;
+			'h7b: orgBase = 7'h25;
+			'h7c: orgBase = 7'h25;
+			'h7d: orgBase = 7'h25;
+			'h7e: orgBase = 7'h25;
+			'h7f: orgBase = 7'h25;
 			'h84: orgBase = 7'h26;
 			'h85: orgBase = 7'h27;
 			'h86: orgBase = 7'h28;
 			'h87: orgBase = 7'h29;
-			'h8C: orgBase = 7'h2A;
-			'h8D: orgBase = 7'h2B;
-			'h8E: orgBase = 7'h2C;
-			'h8F: orgBase = 7'h2D;
-			'h94: orgBase = 7'h2E;
-			'h95: orgBase = 7'h2F;
+			'h8c: orgBase = 7'h2a;
+			'h8d: orgBase = 7'h2b;
+			'h8e: orgBase = 7'h2c;
+			'h8f: orgBase = 7'h2d;
+			'h94: orgBase = 7'h2e;
+			'h95: orgBase = 7'h2f;
 			'h96: orgBase = 7'h30;
 			'h97: orgBase = 7'h31;
-			'h9C: orgBase = 7'h32;
-			'h9D: orgBase = 7'h33;
-			'h9E: orgBase = 7'h34;
-			'h9F: orgBase = 7'h35;
-			'hA4: orgBase = 7'h36;
-			'hA5: orgBase = 7'h36;
-			'hA6: orgBase = 7'h37;
-			'hA7: orgBase = 7'h37;
-			'hAC: orgBase = 7'h38;
-			'hAD: orgBase = 7'h38;
-			'hAE: orgBase = 7'h39;
-			'hAF: orgBase = 7'h39;
-			'hB4: orgBase = 7'h3A;
-			'hB5: orgBase = 7'h3A;
-			'hB6: orgBase = 7'h3B;
-			'hB7: orgBase = 7'h3B;
-			'hBC: orgBase = 7'h3C;
-			'hBD: orgBase = 7'h3C;
-			'hBE: orgBase = 7'h3D;
-			'hBF: orgBase = 7'h3D;
-			'hC0: orgBase = 7'h3E;
-			'hC1: orgBase = 7'h3F;
-			'hC2: orgBase = 7'h40;
-			'hC3: orgBase = 7'h41;
-			'hC8: orgBase = 7'h42;
-			'hC9: orgBase = 7'h43;
-			'hCA: orgBase = 7'h44;
-			'hCB: orgBase = 7'h45;
-			'hD0: orgBase = 7'h46;
-			'hD1: orgBase = 7'h47;
-			'hD2: orgBase = 7'h48;
-			'hD3: orgBase = 7'h49;
-			'hD8: orgBase = 7'h4A;
-			'hD9: orgBase = 7'h4B;
-			'hDA: orgBase = 7'h4C;
-			'hDB: orgBase = 7'h4D;
-			'hE0: orgBase = 7'h4E;
-			'hE1: orgBase = 7'h4E;
-			'hE2: orgBase = 7'h4F;
-			'hE3: orgBase = 7'h4F;
-			'hE8: orgBase = 7'h50;
-			'hE9: orgBase = 7'h50;
-			'hEA: orgBase = 7'h51;
-			'hEB: orgBase = 7'h51;
-			'hF0: orgBase = 7'h52;
-			'hF1: orgBase = 7'h52;
-			'hF2: orgBase = 7'h52;
-			'hF3: orgBase = 7'h52;
-			'hF8: orgBase = 7'h53;
-			'hF9: orgBase = 7'h53;
-			'hFA: orgBase = 7'h53;
-			'hFB: orgBase = 7'h53;
-			default: orgBase = 'sdX;
+			'h9c: orgBase = 7'h32;
+			'h9d: orgBase = 7'h33;
+			'h9e: orgBase = 7'h34;
+			'h9f: orgBase = 7'h35;
+			'ha4: orgBase = 7'h36;
+			'ha5: orgBase = 7'h36;
+			'ha6: orgBase = 7'h37;
+			'ha7: orgBase = 7'h37;
+			'hac: orgBase = 7'h38;
+			'had: orgBase = 7'h38;
+			'hae: orgBase = 7'h39;
+			'haf: orgBase = 7'h39;
+			'hb4: orgBase = 7'h3a;
+			'hb5: orgBase = 7'h3a;
+			'hb6: orgBase = 7'h3b;
+			'hb7: orgBase = 7'h3b;
+			'hbc: orgBase = 7'h3c;
+			'hbd: orgBase = 7'h3c;
+			'hbe: orgBase = 7'h3d;
+			'hbf: orgBase = 7'h3d;
+			'hc0: orgBase = 7'h3e;
+			'hc1: orgBase = 7'h3f;
+			'hc2: orgBase = 7'h40;
+			'hc3: orgBase = 7'h41;
+			'hc8: orgBase = 7'h42;
+			'hc9: orgBase = 7'h43;
+			'hca: orgBase = 7'h44;
+			'hcb: orgBase = 7'h45;
+			'hd0: orgBase = 7'h46;
+			'hd1: orgBase = 7'h47;
+			'hd2: orgBase = 7'h48;
+			'hd3: orgBase = 7'h49;
+			'hd8: orgBase = 7'h4a;
+			'hd9: orgBase = 7'h4b;
+			'hda: orgBase = 7'h4c;
+			'hdb: orgBase = 7'h4d;
+			'he0: orgBase = 7'h4e;
+			'he1: orgBase = 7'h4e;
+			'he2: orgBase = 7'h4f;
+			'he3: orgBase = 7'h4f;
+			'he8: orgBase = 7'h50;
+			'he9: orgBase = 7'h50;
+			'hea: orgBase = 7'h51;
+			'heb: orgBase = 7'h51;
+			'hf0: orgBase = 7'h52;
+			'hf1: orgBase = 7'h52;
+			'hf2: orgBase = 7'h52;
+			'hf3: orgBase = 7'h52;
+			'hf8: orgBase = 7'h53;
+			'hf9: orgBase = 7'h53;
+			'hfa: orgBase = 7'h53;
+			'hfb: orgBase = 7'h53;
+			default: orgBase = 1'sbx;
 		endcase
 endmodule

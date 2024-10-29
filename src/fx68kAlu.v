@@ -22,6 +22,7 @@ module fx68kAlu (
 	ccr,
 	aluOut
 );
+	reg _sv2v_0;
 	input clk;
 	input pwrUp;
 	input enT1;
@@ -40,10 +41,10 @@ module fx68kAlu (
 	input [15:0] alub;
 	input [15:0] iDataBus;
 	input [15:0] iAddrBus;
-	output ze;
+	output wire ze;
 	output reg [15:0] alue;
-	output wire [7:0] ccr;
-	output [15:0] aluOut;
+	output reg [7:0] ccr;
+	output wire [15:0] aluOut;
 	localparam CF = 0;
 	localparam VF = 1;
 	localparam ZF = 2;
@@ -120,12 +121,14 @@ module fx68kAlu (
 		end
 	end
 	always @(*) begin
+		if (_sv2v_0)
+			;
 		aOperand = (aluAddrCtrl ? alub : iAddrBus);
 		case (aluDataCtrl)
 			2'b00: dOperand = iDataBus;
-			2'b01: dOperand = 'h0000;
+			2'b01: dOperand = 'h0;
 			2'b11: dOperand = 'hffff;
-			2'b10: dOperand = 'sdX;
+			2'b10: dOperand = 1'sbx;
 		endcase
 	end
 	wire shftMsb = (isLong ? alue[15] : (isByte ? aOperand[7] : aOperand[15]));
@@ -164,14 +167,17 @@ module fx68kAlu (
 	localparam OP_SUB0 = 7;
 	localparam OP_SUBC = 10;
 	localparam OP_SUBX = 3;
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		case (oper)
 			OP_ADD, OP_SUB: addCin = 1'b0;
 			OP_SUB0: addCin = 1'b1;
 			OP_ADDC, OP_SUBC: addCin = ccrCore[CF];
 			OP_ADDX, OP_SUBX: addCin = pswCcr[XF];
-			default: addCin = 1'bX;
+			default: addCin = 1'bx;
 		endcase
+	end
 	localparam OP_ASL = 13;
 	localparam OP_ASR = 14;
 	localparam OP_LSL = 15;
@@ -182,10 +188,12 @@ module fx68kAlu (
 	localparam OP_ROXR = 20;
 	localparam OP_SLAA = 21;
 	always @(*) begin
+		if (_sv2v_0)
+			;
 		case (oper)
 			OP_LSL, OP_ASL, OP_ROL, OP_ROXL, OP_SLAA: shftRight = 1'b0;
 			OP_LSR, OP_ASR, OP_ROR, OP_ROXR: shftRight = 1'b1;
-			default: shftRight = 1'bX;
+			default: shftRight = 1'bx;
 		endcase
 		case (oper)
 			OP_LSR, OP_ASL, OP_LSL: shftCin = 1'b0;
@@ -197,40 +205,18 @@ module fx68kAlu (
 				else
 					shftCin = pswCcr[XF];
 			OP_SLAA: shftCin = aluColumn[1];
-			default: shftCin = 'sdX;
-		endcase
-	end
-	localparam OP_ABCD = 22;
-	localparam OP_AND = 1;
-	localparam OP_EOR = 9;
-	localparam OP_EXT = 5;
-	localparam OP_OR = 8;
-	always @(*) begin
-		mySubber(aOperand, dOperand, addCin, ((oper == OP_ADD) | (oper == OP_ADDC)) | (oper == OP_ADDX), isByte, subResult, subCout, subOv);
-		isShift = 1'b0;
-		case (oper)
-			OP_AND: result = aOperand & dOperand;
-			OP_OR: result = aOperand | dOperand;
-			OP_EOR: result = aOperand ^ dOperand;
-			OP_EXT: result = {{8 {aOperand[7]}}, aOperand[7:0]};
-			OP_SLAA, OP_ASL, OP_ASR, OP_LSL, OP_LSR, OP_ROL, OP_ROR, OP_ROXL, OP_ROXR: begin
-				result = shftResult[15:0];
-				isShift = 1'b1;
-			end
-			OP_ADD, OP_ADDC, OP_ADDX, OP_SUB, OP_SUBC, OP_SUB0, OP_SUBX: result = subResult;
-			OP_ABCD, OP_SBCD: result = {8'hXX, bcdLatch};
-			default: result = 'sdX;
+			default: shftCin = 1'sbx;
 		endcase
 	end
 	task mySubber;
-		input reg [15:0] inpa;
-		input reg [15:0] inpb;
-		input reg cin;
-		input reg bAdd;
-		input reg isByte;
+		input [15:0] inpa;
+		input [15:0] inpb;
+		input cin;
+		input bAdd;
+		input isByte;
 		output reg [15:0] result;
-		output cout;
-		output ov;
+		output reg cout;
+		output reg ov;
 		reg [16:0] rtemp;
 		reg rm;
 		reg sm;
@@ -255,18 +241,44 @@ module fx68kAlu (
 			subHcarry = (inpa[4] ^ inpb[4]) ^ rtemp[4];
 		end
 	endtask
+	localparam OP_ABCD = 22;
+	localparam OP_AND = 1;
+	localparam OP_EOR = 9;
+	localparam OP_EXT = 5;
+	localparam OP_OR = 8;
 	always @(*) begin
+		if (_sv2v_0)
+			;
+		mySubber(aOperand, dOperand, addCin, ((oper == OP_ADD) | (oper == OP_ADDC)) | (oper == OP_ADDX), isByte, subResult, subCout, subOv);
+		isShift = 1'b0;
+		case (oper)
+			OP_AND: result = aOperand & dOperand;
+			OP_OR: result = aOperand | dOperand;
+			OP_EOR: result = aOperand ^ dOperand;
+			OP_EXT: result = {{8 {aOperand[7]}}, aOperand[7:0]};
+			OP_SLAA, OP_ASL, OP_ASR, OP_LSL, OP_LSR, OP_ROL, OP_ROR, OP_ROXL, OP_ROXR: begin
+				result = shftResult[15:0];
+				isShift = 1'b1;
+			end
+			OP_ADD, OP_ADDC, OP_ADDX, OP_SUB, OP_SUBC, OP_SUB0, OP_SUBX: result = subResult;
+			OP_ABCD, OP_SBCD: result = {8'hxx, bcdLatch};
+			default: result = 1'sbx;
+		endcase
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		ccrTemp[XF] = pswCcr[XF];
 		ccrTemp[CF] = 0;
 		ccrTemp[VF] = 0;
 		ccrTemp[ZF] = (isByte ? ~(|result[7:0]) : ~(|result));
 		ccrTemp[NF] = (isByte ? result[7] : result[15]);
+		(* full_case, parallel_case *)
 		case (oper)
 			OP_EXT:
 				if (aluColumn == 5) begin
 					ccrTemp[VF] = 1'b1;
 					ccrTemp[NF] = 1'b1;
-					ccrTemp[ZF] = 1'b0;
 				end
 			OP_SUB0, OP_OR, OP_EOR: begin
 				ccrTemp[CF] = 0;
@@ -316,6 +328,8 @@ module fx68kAlu (
 	end
 	reg [4:0] ccrMasked;
 	always @(*) begin
+		if (_sv2v_0)
+			;
 		ccrMasked = (ccrTemp & ccrMask) | (pswCcr & ~ccrMask);
 		if (finish | isArX)
 			ccrMasked[ZF] = ccrTemp[ZF] & pswCcr[ZF];
@@ -334,13 +348,16 @@ module fx68kAlu (
 				alue <= shftResult[31:16];
 		end
 		if (pwrUp)
-			pswCcr <= 'sd0;
+			pswCcr <= 1'sb0;
 		else if (enT3 & ftu2Ccr)
 			pswCcr <= ftu[4:0];
 		else if ((enT3 & ~noCcrEn) & (finish | init))
 			pswCcr <= ccrMasked;
 	end
-	assign ccr = {3'b0, pswCcr};
+	wire [8:1] sv2v_tmp_D1156;
+	assign sv2v_tmp_D1156 = {3'b000, pswCcr};
+	always @(*) ccr = sv2v_tmp_D1156;
+	initial _sv2v_0 = 0;
 endmodule
 module aluCorf (
 	binResult,
@@ -351,18 +368,25 @@ module aluCorf (
 	dC,
 	ov
 );
+	reg _sv2v_0;
 	input [7:0] binResult;
 	input bAdd;
 	input cin;
 	input hCarry;
-	output [7:0] bcdResult;
-	output dC;
+	output wire [7:0] bcdResult;
+	output wire dC;
 	output reg ov;
 	reg [8:0] htemp;
 	reg [4:0] hNib;
+	function gt9;
+		input [3:0] nib;
+		gt9 = nib[3] & (nib[2] | nib[1]);
+	endfunction
 	wire lowC = hCarry | (bAdd ? gt9(binResult[3:0]) : 1'b0);
 	wire highC = cin | (bAdd ? gt9(htemp[7:4]) | htemp[8] : 1'b0);
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if (bAdd) begin
 			htemp = {1'b0, binResult} + (lowC ? 4'h6 : 4'h0);
 			hNib = htemp[8:4] + (highC ? 4'h6 : 4'h0);
@@ -373,12 +397,10 @@ module aluCorf (
 			hNib = htemp[8:4] - (highC ? 4'h6 : 4'h0);
 			ov = ~hNib[3] & binResult[7];
 		end
+	end
 	assign bcdResult = {hNib[3:0], htemp[3:0]};
 	assign dC = hNib[4] | cin;
-	function gt9;
-		input reg [3:0] nib;
-		gt9 = nib[3] & (nib[2] | nib[1]);
-	endfunction
+	initial _sv2v_0 = 0;
 endmodule
 module aluShifter (
 	data,
@@ -389,6 +411,7 @@ module aluShifter (
 	cin,
 	result
 );
+	reg _sv2v_0;
 	input [31:0] data;
 	input isByte;
 	input isLong;
@@ -398,13 +421,17 @@ module aluShifter (
 	output reg [31:0] result;
 	reg [31:0] tdata;
 	always @(*) begin
+		if (_sv2v_0)
+			;
 		tdata = data;
 		if (isByte & dir)
 			tdata[8] = cin;
 		else if (!isLong & dir)
 			tdata[16] = cin;
 	end
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if (swapWords & dir)
 			result = {tdata[0], tdata[31:17], cin, tdata[15:1]};
 		else if (swapWords)
@@ -413,6 +440,8 @@ module aluShifter (
 			result = {cin, tdata[31:1]};
 		else
 			result = {tdata[30:0], cin};
+	end
+	initial _sv2v_0 = 0;
 endmodule
 module aluGetOp (
 	row,
@@ -420,6 +449,7 @@ module aluGetOp (
 	isCorf,
 	aluOp
 );
+	reg _sv2v_0;
 	input [15:0] row;
 	input [2:0] col;
 	input isCorf;
@@ -447,25 +477,32 @@ module aluGetOp (
 	localparam OP_SUBC = 10;
 	localparam OP_SUBX = 3;
 	always @(*) begin
-		aluOp = 'sdX;
+		if (_sv2v_0)
+			;
+		aluOp = 1'sbx;
+		(* full_case, parallel_case *)
 		case (col)
 			1: aluOp = OP_AND;
 			5: aluOp = OP_EXT;
 			default:
+				(* full_case, parallel_case *)
 				case (1'b1)
 					row[1]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_SUB;
 							3: aluOp = OP_SUBC;
 							4, 6: aluOp = OP_SLAA;
 						endcase
 					row[2]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_ADD;
 							3: aluOp = OP_ADDC;
 							4: aluOp = OP_ASR;
 						endcase
 					row[3]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_ADDX;
 							3: aluOp = (isCorf ? OP_ABCD : OP_ADD);
@@ -473,36 +510,42 @@ module aluGetOp (
 						endcase
 					row[4]: aluOp = (col == 4 ? OP_LSL : OP_AND);
 					row[5], row[6]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_SUB;
 							3: aluOp = OP_SUBC;
 							4: aluOp = OP_LSR;
 						endcase
 					row[7]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_SUB;
 							3: aluOp = OP_ADD;
 							4: aluOp = OP_ROXR;
 						endcase
 					row[8]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_EXT;
 							3: aluOp = OP_AND;
 							4: aluOp = OP_ROXR;
 						endcase
 					row[9]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_SUBX;
 							3: aluOp = OP_SBCD;
 							4: aluOp = OP_ROL;
 						endcase
 					row[10]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_SUBX;
 							3: aluOp = OP_SUBC;
 							4: aluOp = OP_ROR;
 						endcase
 					row[11]:
+						(* full_case, parallel_case *)
 						case (col)
 							2: aluOp = OP_SUB0;
 							3: aluOp = OP_SUB0;
@@ -515,6 +558,7 @@ module aluGetOp (
 				endcase
 		endcase
 	end
+	initial _sv2v_0 = 0;
 endmodule
 module rowDecoder (
 	ird,
@@ -522,29 +566,36 @@ module rowDecoder (
 	noCcrEn,
 	isArX
 );
+	reg _sv2v_0;
 	input [15:0] ird;
 	output reg [15:0] row;
-	output noCcrEn;
+	output wire noCcrEn;
 	output reg isArX;
 	wire eaRdir = ird[5:4] == 2'b00;
 	wire eaAdir = ird[5:3] == 3'b001;
 	wire size11 = ird[7] & ird[6];
-	always @(*)
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		case (ird[15:12])
 			'h4, 'h9, 'hd: isArX = row[10] | row[12];
 			default: isArX = 1'b0;
 		endcase
-	always @(*)
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (ird[15:12])
 			'h4:
 				if (ird[8])
 					row = 16'h0040;
 				else
 					case (ird[11:9])
-						'b000: row = 16'h0400;
-						'b001: row = 16'h0010;
-						'b010: row = 16'h0020;
-						'b011: row = 16'h0800;
+						'b0: row = 16'h0400;
+						'b1: row = 16'h0010;
+						'b10: row = 16'h0020;
+						'b11: row = 16'h0800;
 						'b100: row = (ird[7] ? 16'h0100 : 16'h0200);
 						'b101: row = 16'h8000;
 						default: row = 0;
@@ -554,10 +605,10 @@ module rowDecoder (
 					row = (ird[7] ? 16'h4000 : 16'h2000);
 				else
 					case (ird[11:9])
-						'b000: row = 16'h4000;
-						'b001: row = 16'h0010;
-						'b010: row = 16'h0020;
-						'b011: row = 16'h0004;
+						'b0: row = 16'h4000;
+						'b1: row = 16'h0010;
+						'b10: row = 16'h0020;
+						'b11: row = 16'h0004;
 						'b100: row = (ird[7] ? 16'h4000 : 16'h2000);
 						'b101: row = 16'h2000;
 						'b110: row = 16'h0040;
@@ -619,7 +670,9 @@ module rowDecoder (
 			end
 			default: row = 0;
 		endcase
+	end
 	assign noCcrEn = ((((ird[15] & ~ird[13]) & ird[12]) & size11) | ((ird[15:12] == 4'h5) & eaAdir)) | (((~ird[15] & ~ird[14]) & ird[13]) & (ird[8:6] == 3'b001));
+	initial _sv2v_0 = 0;
 endmodule
 module ccrTable (
 	col,
@@ -627,11 +680,12 @@ module ccrTable (
 	finish,
 	ccrMask
 );
+	reg _sv2v_0;
 	input [2:0] col;
 	input [15:0] row;
 	input finish;
 	localparam MASK_NBITS = 5;
-	output reg [MASK_NBITS - 1:0] ccrMask;
+	output reg [4:0] ccrMask;
 	localparam KNZ00 = 5'b01111;
 	localparam KKZKK = 5'b00100;
 	localparam KNZKK = 5'b01100;
@@ -641,21 +695,25 @@ module ccrTable (
 	localparam XNKVC = 5'b11011;
 	localparam CUPDALL = 5'b11111;
 	localparam CUNUSED = 5'bxxxxx;
-	reg [MASK_NBITS - 1:0] ccrMask1;
-	always @(*)
+	reg [4:0] ccrMask1;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
 		case (col)
 			1: ccrMask = ccrMask1;
 			2, 3:
+				(* full_case, parallel_case *)
 				case (1'b1)
 					row[1]: ccrMask = KNZ0C;
 					row[3], row[9]: ccrMask = (col == 2 ? XNKVC : CUPDALL);
 					row[2], row[5], row[10], row[12]: ccrMask = CUPDALL;
 					row[6], row[7], row[11]: ccrMask = KNZVC;
 					row[4], row[8], row[13], row[14]: ccrMask = KNZ00;
-					row[15]: ccrMask = 5'b0;
-					default: ccrMask = CUNUSED;
+					row[15]: ccrMask = 5'b00000;
 				endcase
 			4:
+				(* full_case, parallel_case *)
 				case (row)
 					16'h0004, 16'h0008, 16'h0010, 16'h0020: ccrMask = CUPDALL;
 					16'h0080: ccrMask = KNZ00;
@@ -663,12 +721,17 @@ module ccrTable (
 					16'h0100, 16'h0800: ccrMask = CUPDALL;
 					default: ccrMask = CUNUSED;
 				endcase
-			5: ccrMask = (row[1] ? KNZ10 : 5'b0);
+			5: ccrMask = (row[1] ? KNZ10 : 5'b00000);
 			default: ccrMask = CUNUSED;
 		endcase
-	always @(*)
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
 		if (finish)
 			ccrMask1 = (row[7] ? KNZ00 : KNZKK);
 		else
 			ccrMask1 = (row[13] | row[14] ? KKZKK : KNZ00);
+	end
+	initial _sv2v_0 = 0;
 endmodule
